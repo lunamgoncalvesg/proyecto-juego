@@ -5,10 +5,6 @@ import com.badlogic.gdx.InputAdapter;
 
 public class Controles extends InputAdapter {
 
-// =========================
-// JUGADOR 1
-// =========================
-
 private boolean jugador1Izquierda;
 private boolean jugador1Derecha;
 private boolean jugador1Saltar;
@@ -17,10 +13,6 @@ private boolean jugador1Defender;
 private boolean jugador1AtaqueFuerte;
 private boolean jugador1AtaqueSuave;
 private boolean jugador1Especial;
-
-// =========================
-// JUGADOR 2
-// =========================
 
 private boolean jugador2Izquierda;
 private boolean jugador2Derecha;
@@ -31,16 +23,8 @@ private boolean jugador2AtaqueFuerte;
 private boolean jugador2AtaqueSuave;
 private boolean jugador2Especial;
 
-// =========================
-// TECLAS PRESIONADAS
-// =========================
-
 @Override
 public boolean keyDown(int keycode) {
-
-    // -------------------------
-    // JUGADOR 1
-    // -------------------------
 
     if (keycode == Input.Keys.A) {
         jugador1Izquierda = true;
@@ -69,10 +53,6 @@ public boolean keyDown(int keycode) {
     if (keycode == Input.Keys.R) {
         jugador1Especial = true;
     }
-
-    // -------------------------
-    // JUGADOR 2
-    // -------------------------
 
     if (keycode == Input.Keys.LEFT) {
         jugador2Izquierda = true;
@@ -105,16 +85,8 @@ public boolean keyDown(int keycode) {
     return true;
 }
 
-// =========================
-// TECLAS SOLTADAS
-// =========================
-
 @Override
 public boolean keyUp(int keycode) {
-
-    // -------------------------
-    // JUGADOR 1
-    // -------------------------
 
     if (keycode == Input.Keys.A) {
         jugador1Izquierda = false;
@@ -143,10 +115,6 @@ public boolean keyUp(int keycode) {
     if (keycode == Input.Keys.R) {
         jugador1Especial = false;
     }
-
-    // -------------------------
-    // JUGADOR 2
-    // -------------------------
 
     if (keycode == Input.Keys.LEFT) {
         jugador2Izquierda = false;
@@ -179,10 +147,6 @@ public boolean keyUp(int keycode) {
     return true;
 }
 
-// =========================
-// JUGADOR 1
-// =========================
-
 public boolean jugador1Izquierda() {
     return jugador1Izquierda;
 }
@@ -210,10 +174,6 @@ public boolean jugador1AtaqueSuave() {
 public boolean jugador1Especial() {
     return jugador1Especial;
 }
-
-// =========================
-// JUGADOR 2
-// =========================
 
 public boolean jugador2Izquierda() {
     return jugador2Izquierda;

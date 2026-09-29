@@ -5,34 +5,27 @@ import com.proyecto.juego.combate.TipoAtaque;
 
 public class Personaje {
 
-    // Datos básicos
     private String nombre;
     private float vida;
 
     private final float vidaMaxima = 100;
     private float velocidad;
 
-    // Posición
     private float x;
     private float y;
 
-    // Datos del salto
     private float velocidadVertical;
     private boolean enElAire;
 
-    // Límites de la arena
     private float limiteIzquierdo;
     private float limiteDerecho;
 
-    // Estado actual
     private EstadoPersonaje estado;
 
-    // Ataques
     private Ataque ataqueSuave;
     private Ataque ataqueBomba;
     private Ataque ataqueEspecial;
 
-    // Constructor
     public Personaje(String nombre, float velocidad) {
 
         this.nombre = nombre;
@@ -51,7 +44,6 @@ public class Personaje {
 
         estado = EstadoPersonaje.NORMAL;
 
-        // Ataque suave
         ataqueSuave = new Ataque(
                 TipoAtaque.SUAVE,
                 1,
@@ -59,7 +51,6 @@ public class Personaje {
                 0
         );
 
-        // Ataque bomba
         ataqueBomba = new Ataque(
                 TipoAtaque.BOMBA,
                 5,
@@ -67,7 +58,6 @@ public class Personaje {
                 3
         );
 
-        // Ataque especial
         ataqueEspecial = new Ataque(
                 TipoAtaque.ESPECIAL,
                 10,
@@ -75,10 +65,6 @@ public class Personaje {
                 15
         );
     }
-
-    // =========================
-    // DATOS BÁSICOS
-    // =========================
 
     public String getNombre() {
         return nombre;
@@ -96,10 +82,6 @@ public class Personaje {
         return velocidad;
     }
 
-    // =========================
-    // POSICIÓN
-    // =========================
-
     public float getX() {
         return x;
     }
@@ -112,7 +94,6 @@ public class Personaje {
 
         x += cantidadX;
 
-        // Evitar salir de la arena
         if (x < limiteIzquierdo) {
             x = limiteIzquierdo;
         }
@@ -136,13 +117,8 @@ public class Personaje {
         limiteDerecho = derecho;
     }
 
-    // =========================
-    // SALTO
-    // =========================
-
     public void saltar() {
 
-        // No puede volver a saltar mientras está en el aire
         if (!enElAire) {
 
             velocidadVertical = 300;
@@ -158,13 +134,10 @@ public class Personaje {
             return;
         }
 
-        // Gravedad
         velocidadVertical -= 800 * delta;
 
-        // Movimiento vertical
         y += velocidadVertical * delta;
 
-        // Llegó nuevamente al suelo
         if (y <= 0) {
 
             y = 0;
@@ -181,10 +154,6 @@ public class Personaje {
         return enElAire;
     }
 
-    // =========================
-    // ESTADO
-    // =========================
-
     public EstadoPersonaje getEstado() {
         return estado;
     }
@@ -194,10 +163,6 @@ public class Personaje {
 
         this.estado = estado;
     }
-
-    // =========================
-    // ATAQUES
-    // =========================
 
     public Ataque getAtaqueSuave() {
         return ataqueSuave;
@@ -210,10 +175,6 @@ public class Personaje {
     public Ataque getAtaqueEspecial() {
         return ataqueEspecial;
     }
-
-    // =========================
-    // VIDA
-    // =========================
 
     public void recibirDanio(float danio) {
 

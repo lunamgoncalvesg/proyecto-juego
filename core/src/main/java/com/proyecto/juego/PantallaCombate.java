@@ -18,543 +18,420 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class PantallaCombate implements Screen {
 
-private OrthographicCamera camara;
+        private OrthographicCamera camara;
 
-private SpriteBatch batch;
+        private SpriteBatch batch;
 
-private BitmapFont fuente;
+        private BitmapFont fuente;
 
-private ShapeRenderer formas;
+        private ShapeRenderer formas;
 
-private Controles controles;
+        private Controles controles;
 
-private Combate combate;
+        private Combate combate;
 
-private ControladorCombate controlador;
+        private ControladorCombate controlador;
 
-private Personaje jugador1;
+        private Personaje jugador1;
 
-private Personaje jugador2;
+        private Personaje jugador2;
 
-private Texture texturaJugador1;
-private TextureRegion spriteJugador1;
+        private Texture texturaJugador1;
+        private TextureRegion spriteJugador1;
 
-private Texture texturaJugador2;
-private TextureRegion spriteJugador2;
-// Tamaño provisional de los personajes
-private final float anchoPersonaje = 300;
+        private Texture texturaJugador2;
+        private TextureRegion spriteJugador2;
+        private final float anchoPersonaje = 300;
 
-private final float altoPersonaje = 400;
+        private final float altoPersonaje = 400;
 
-private final float anchoColision = 120;
-private final float altoColision = 350;
-private final float margenColision = 90;
-// Tiempo que se muestra el resultado de una ronda
-private float tiempoResultado;
+        private final float anchoColision = 120;
+        private final float altoColision = 350;
+        private final float margenColision = 90;
+        private float tiempoResultado;
 
-// Indica si estamos mostrando el resultado
-private boolean mostrandoResultado;
+        private boolean mostrandoResultado;
 
-// Guarda el ganador de la ronda actual
-private int ganadorRonda;
+        private int ganadorRonda;
 
-public PantallaCombate() {
+        public PantallaCombate() {
 
-    camara = new OrthographicCamera();
+                camara = new OrthographicCamera();
 
-    camara.setToOrtho(false, 1280, 720);
+                camara.setToOrtho(false, 1280, 720);
 
-    batch = new SpriteBatch();
+                batch = new SpriteBatch();
 
-    fuente = new BitmapFont();
+                fuente = new BitmapFont();
 
-    fuente.getData().setScale(2);
+                fuente.getData().setScale(2);
 
-    formas = new ShapeRenderer();
+                formas = new ShapeRenderer();
 
-    texturaJugador1 = new Texture("personajes/jugador1_idle.png");
-spriteJugador1 = new TextureRegion(texturaJugador1);
+                texturaJugador1 = new Texture("personajes/jugador1_idle.png");
+                spriteJugador1 = new TextureRegion(texturaJugador1);
 
-texturaJugador2 = new Texture("personajes/jugador1_idle.png");
-spriteJugador2 = new TextureRegion(texturaJugador2);
-spriteJugador2.flip(true, false);
+                texturaJugador2 = new Texture("personajes/jugador1_idle.png");
+                spriteJugador2 = new TextureRegion(texturaJugador2);
+                spriteJugador2.flip(true, false);
 
-    controles = new Controles();
+                controles = new Controles();
 
-    Gdx.input.setInputProcessor(controles);
+                Gdx.input.setInputProcessor(controles);
 
-    // Personajes provisionales
+                jugador1 = new Personaje("Jugador 1", 300);
+                jugador2 = new Personaje("Jugador 2", 300);
 
-jugador1 = new Personaje("Jugador 1", 300);
-jugador2 = new Personaje("Jugador 2", 300);
+                jugador1.establecerPosicion(150, 0);
+                jugador2.establecerPosicion(830, 0);
 
-    // Posiciones iniciales
+                jugador1.establecerLimites(20, 960);
+                jugador2.establecerLimites(20, 960);
 
-jugador1.establecerPosicion(150, 0);
-jugador2.establecerPosicion(830, 0);
+                combate = new Combate(
+                                jugador1,
+                                jugador2);
 
-    // Límites de movimiento
+                controlador = new ControladorCombate(
+                                combate,
+                                controles);
 
-jugador1.establecerLimites(20, 960);
-jugador2.establecerLimites(20, 960);
+                tiempoResultado = 0;
 
-    combate = new Combate(
-            jugador1,
-            jugador2
-    );
+                mostrandoResultado = false;
 
-    controlador = new ControladorCombate(
-            combate,
-            controles
-    );
-
-    tiempoResultado = 0;
-
-    mostrandoResultado = false;
-
-    ganadorRonda = 0;
-}
-
-@Override
-public void show() {
-}
-
-@Override
-public void render(float delta) {
-
-    // =========================
-    // ACTUALIZAR
-    // =========================
-
-    if (mostrandoResultado) {
-
-        actualizarResultado(delta);
-
-    } else {
-
-        controlador.actualizar(delta);
-
-        resolverColision();
-
-        // Comprobar si terminó la ronda
-
-        if (combate.rondaEstaTerminada()) {
-
-            comenzarResultadoRonda();
-        }
-    }
-
-    camara.update();
-
-    // =========================
-    // LIMPIAR PANTALLA
-    // =========================
-
-    Gdx.gl.glClearColor(
-            0.08f,
-            0.08f,
-            0.08f,
-            1
-    );
-
-    Gdx.gl.glClear(
-            GL20.GL_COLOR_BUFFER_BIT
-    );
-
-    // =========================
-    // DIBUJAR
-    // =========================
-
-    formas.setProjectionMatrix(
-            camara.combined
-    );
-
-    formas.begin(
-            ShapeRenderer.ShapeType.Filled
-    );
-
-    // Piso
-
-    formas.setColor(
-            0.25f,
-            0.25f,
-            0.25f,
-            1
-    );
-
-    formas.rect(
-            0,
-            0,
-            1280,
-            80
-    );
-
-
-    // =========================
-// ESCUDO DE BLOQUEO
-// =========================
-
-// Escudo del jugador 1
-if (jugador1.getEstado() == EstadoPersonaje.BLOQUEANDO) {
-
-    formas.setColor(
-            0.3f,
-            0.7f,
-            1f,
-            0.7f
-    );
-
-    formas.circle(
-            jugador1.getX() + anchoPersonaje + 10,
-            jugador1.getY() + altoPersonaje / 2,
-            45
-    );
-}
-
-// Escudo del jugador 2
-if (jugador2.getEstado() == EstadoPersonaje.BLOQUEANDO) {
-
-    formas.setColor(
-            0.3f,
-            0.7f,
-            1f,
-            0.7f
-    );
-
-    formas.circle(
-            jugador2.getX() - 10,
-            jugador2.getY() + altoPersonaje / 2,
-            45
-    );
-}
-
-    // =========================
-    // BARRAS DE VIDA
-    // =========================
-
-    float vida1 =
-            jugador1.getVida()
-            / jugador1.getVidaMaxima();
-
-    float vida2 =
-            jugador2.getVida()
-            / jugador2.getVidaMaxima();
-
-    // Fondo de las barras
-
-    formas.setColor(
-            0.15f,
-            0.15f,
-            0.15f,
-            1
-    );
-
-    formas.rect(
-            70,
-            640,
-            500,
-            30
-    );
-
-    formas.rect(
-            710,
-            640,
-            500,
-            30
-    );
-
-    // Vida jugador 1
-
-    formas.setColor(
-            0.2f,
-            0.8f,
-            0.2f,
-            1
-    );
-
-    formas.rect(
-            70,
-            640,
-            500 * vida1,
-            30
-    );
-
-    // Vida jugador 2
-
-    formas.rect(
-            710 + (500 * (1 - vida2)),
-            640,
-            500 * vida2,
-            30
-    );
-
-    formas.end();
-
-    batch.setProjectionMatrix(camara.combined);
-batch.begin();
-
-batch.draw(
-    spriteJugador1,
-    jugador1.getX(),
-    jugador1.getY(),
-    anchoPersonaje,
-    altoPersonaje
-);
-
-batch.draw(
-    spriteJugador1,
-    jugador1.getX(),
-    jugador1.getY(),
-    anchoPersonaje,
-    altoPersonaje
-);
-
-batch.draw(
-    spriteJugador2,
-    jugador2.getX(),
-    jugador2.getY(),
-    anchoPersonaje,
-    altoPersonaje
-);
-
-batch.end();
-
-    // =========================
-    // TEXTO
-    // =========================
-
-    batch.setProjectionMatrix(
-            camara.combined
-    );
-
-    batch.begin();
-
-    // =========================
-    // TEMPORIZADOR
-    // =========================
-
-    int segundos =
-            (int) Math.ceil(
-                    combate.getTiempoRonda()
-            );
-
-    String textoTiempo =
-            String.valueOf(segundos);
-
-    fuente.draw(
-            batch,
-            textoTiempo,
-            630,
-            680
-    );
-
-    // =========================
-    // RONDAS
-    // =========================
-
-    String rondas1 =
-            "Rondas: "
-            + combate.getRondasJugador1();
-
-    String rondas2 =
-            "Rondas: "
-            + combate.getRondasJugador2();
-
-    fuente.draw(
-            batch,
-            rondas1,
-            70,
-            620
-    );
-
-    fuente.draw(
-            batch,
-            rondas2,
-            1050,
-            620
-    );
-
-    // =========================
-    // RESULTADO
-    // =========================
-
-    if (mostrandoResultado) {
-
-        String textoGanador;
-
-        if (ganadorRonda == 1) {
-
-            textoGanador =
-                    "¡JUGADOR 1 GANA LA RONDA!";
-
-        } else if (ganadorRonda == 2) {
-
-            textoGanador =
-                    "¡JUGADOR 2 GANA LA RONDA!";
-
-        } else {
-
-            textoGanador =
-                    "¡EMPATE!";
+                ganadorRonda = 0;
         }
 
-        fuente.draw(
-                batch,
-                textoGanador,
-                430,
-                380
-        );
-    }
+        @Override
+        public void show() {
+        }
 
-    batch.end();
-}
+        @Override
+        public void render(float delta) {
 
-// =========================
-// COMENZAR RESULTADO
-// =========================
+                if (mostrandoResultado) {
 
-private void comenzarResultadoRonda() {
+                        actualizarResultado(delta);
 
-    if (mostrandoResultado) {
-        return;
-    }
+                } else {
 
-    ganadorRonda =
-            combate.obtenerGanadorRonda();
+                        controlador.actualizar(delta);
 
-    combate.registrarGanadorRonda();
+                        resolverColision();
 
-    mostrandoResultado = true;
+                        if (combate.rondaEstaTerminada()) {
 
-    tiempoResultado = 2;
-}
+                                comenzarResultadoRonda();
+                        }
+                }
 
-// =========================
-// ACTUALIZAR RESULTADO
-// =========================
+                camara.update();
 
-private void actualizarResultado(float delta) {
+                Gdx.gl.glClearColor(
+                                0.08f,
+                                0.08f,
+                                0.08f,
+                                1);
 
-    tiempoResultado -= delta;
+                Gdx.gl.glClear(
+                                GL20.GL_COLOR_BUFFER_BIT);
 
-    if (tiempoResultado > 0) {
-        return;
-    }
+                formas.setProjectionMatrix(
+                                camara.combined);
 
-    // Si alguien ganó dos rondas,
-    // el combate completo terminó.
+                formas.begin(
+                                ShapeRenderer.ShapeType.Filled);
 
-    if (combate.combateTerminado()) {
+                formas.setColor(
+                                0.25f,
+                                0.25f,
+                                0.25f,
+                                1);
 
-        mostrandoResultado = false;
+                formas.rect(
+                                0,
+                                0,
+                                1280,
+                                80);
 
-        return;
-    }
+                if (jugador1.getEstado() == EstadoPersonaje.BLOQUEANDO) {
 
-    // Comenzar nueva ronda
+                        formas.setColor(
+                                        0.3f,
+                                        0.7f,
+                                        1f,
+                                        0.7f);
 
-    combate.iniciarRonda();
+                        formas.circle(
+                                        jugador1.getX() + anchoPersonaje + 10,
+                                        jugador1.getY() + altoPersonaje / 2,
+                                        45);
+                }
 
-    // Volver a colocar a los jugadores
+                if (jugador2.getEstado() == EstadoPersonaje.BLOQUEANDO) {
 
-    jugador1.establecerPosicion(
-            250,
-            0
-    );
+                        formas.setColor(
+                                        0.3f,
+                                        0.7f,
+                                        1f,
+                                        0.7f);
 
-    jugador2.establecerPosicion(
-            950,
-            0
-    );
+                        formas.circle(
+                                        jugador2.getX() - 10,
+                                        jugador2.getY() + altoPersonaje / 2,
+                                        45);
+                }
 
-    mostrandoResultado = false;
-}
+                float vida1 = jugador1.getVida()
+                                / jugador1.getVidaMaxima();
 
-// =========================
-// COLISIÓN ENTRE JUGADORES
-// =========================
+                float vida2 = jugador2.getVida()
+                                / jugador2.getVidaMaxima();
 
-private void resolverColision() {
+                formas.setColor(
+                                0.15f,
+                                0.15f,
+                                0.15f,
+                                1);
 
-    float izquierda1 = jugador1.getX() + margenColision;
-    float derecha1 = izquierda1 + anchoColision;
+                formas.rect(
+                                70,
+                                640,
+                                500,
+                                30);
 
-    float izquierda2 = jugador2.getX() + margenColision;
-    float derecha2 = izquierda2 + anchoColision;
+                formas.rect(
+                                710,
+                                640,
+                                500,
+                                30);
 
-    boolean seSuperponen =
-        derecha1 > izquierda2 &&
-        izquierda1 < derecha2;
+                formas.setColor(
+                                0.2f,
+                                0.8f,
+                                0.2f,
+                                1);
 
-    if (!seSuperponen) {
-        return;
-    }
+                formas.rect(
+                                70,
+                                640,
+                                500 * vida1,
+                                30);
 
-    float superposicion;
+                formas.rect(
+                                710 + (500 * (1 - vida2)),
+                                640,
+                                500 * vida2,
+                                30);
 
-    if (jugador1.getX() < jugador2.getX()) {
+                formas.end();
 
-        superposicion = derecha1 - izquierda2;
+                batch.setProjectionMatrix(camara.combined);
+                batch.begin();
 
-        jugador1.establecerPosicion(
-            jugador1.getX() - superposicion / 2,
-            jugador1.getY()
-        );
+                batch.draw(
+                                spriteJugador1,
+                                jugador1.getX(),
+                                jugador1.getY(),
+                                anchoPersonaje,
+                                altoPersonaje);
 
-        jugador2.establecerPosicion(
-            jugador2.getX() + superposicion / 2,
-            jugador2.getY()
-        );
+                batch.draw(
+                                spriteJugador1,
+                                jugador1.getX(),
+                                jugador1.getY(),
+                                anchoPersonaje,
+                                altoPersonaje);
 
-    } else {
+                batch.draw(
+                                spriteJugador2,
+                                jugador2.getX(),
+                                jugador2.getY(),
+                                anchoPersonaje,
+                                altoPersonaje);
 
-        superposicion = derecha2 - izquierda1;
+                batch.end();
 
-        jugador1.establecerPosicion(
-            jugador1.getX() + superposicion / 2,
-            jugador1.getY()
-        );
+                batch.setProjectionMatrix(
+                                camara.combined);
 
-        jugador2.establecerPosicion(
-            jugador2.getX() - superposicion / 2,
-            jugador2.getY()
-        );
-    }
-}
+                batch.begin();
 
-@Override
-public void resize(
-        int width,
-        int height
-) {
+                int segundos = (int) Math.ceil(
+                                combate.getTiempoRonda());
 
-    camara.viewportWidth = 1280;
+                String textoTiempo = String.valueOf(segundos);
 
-    camara.viewportHeight = 720;
+                fuente.draw(
+                                batch,
+                                textoTiempo,
+                                630,
+                                680);
 
-    camara.update();
-}
+                String rondas1 = "Rondas: "
+                                + combate.getRondasJugador1();
 
-@Override
-public void pause() {
-}
+                String rondas2 = "Rondas: "
+                                + combate.getRondasJugador2();
 
-@Override
-public void resume() {
-}
+                fuente.draw(
+                                batch,
+                                rondas1,
+                                70,
+                                620);
 
-@Override
-public void hide() {
-}
+                fuente.draw(
+                                batch,
+                                rondas2,
+                                1050,
+                                620);
 
-@Override
-public void dispose() {
+                if (mostrandoResultado) {
 
-    batch.dispose();
+                        String textoGanador;
 
-    formas.dispose();
+                        if (ganadorRonda == 1) {
 
-    fuente.dispose();
-}
+                                textoGanador = "El jugador 1 gana la ronda";
+
+                        } else if (ganadorRonda == 2) {
+
+                                textoGanador = "El jugador 2 gana la ronda";
+
+                        } else {
+
+                                textoGanador = "Empate";
+                        }
+
+                        fuente.draw(
+                                        batch,
+                                        textoGanador,
+                                        430,
+                                        380);
+                }
+
+                batch.end();
+        }
+
+        private void comenzarResultadoRonda() {
+
+                if (mostrandoResultado) {
+                        return;
+                }
+
+                ganadorRonda = combate.obtenerGanadorRonda();
+
+                combate.registrarGanadorRonda();
+
+                mostrandoResultado = true;
+
+                tiempoResultado = 2;
+        }
+
+        private void actualizarResultado(float delta) {
+
+                tiempoResultado -= delta;
+
+                if (tiempoResultado > 0) {
+                        return;
+                }
+
+                if (combate.combateTerminado()) {
+
+                        mostrandoResultado = false;
+
+                        return;
+                }
+
+                combate.iniciarRonda();
+
+                jugador1.establecerPosicion(
+                                250,
+                                0);
+
+                jugador2.establecerPosicion(
+                                950,
+                                0);
+
+                mostrandoResultado = false;
+        }
+
+        private void resolverColision() {
+
+                float izquierda1 = jugador1.getX() + margenColision;
+                float derecha1 = izquierda1 + anchoColision;
+
+                float izquierda2 = jugador2.getX() + margenColision;
+                float derecha2 = izquierda2 + anchoColision;
+
+                boolean seSuperponen = derecha1 > izquierda2 &&
+                                izquierda1 < derecha2;
+
+                if (!seSuperponen) {
+                        return;
+                }
+
+                float superposicion;
+
+                if (jugador1.getX() < jugador2.getX()) {
+
+                        superposicion = derecha1 - izquierda2;
+
+                        jugador1.establecerPosicion(
+                                        jugador1.getX() - superposicion / 2,
+                                        jugador1.getY());
+
+                        jugador2.establecerPosicion(
+                                        jugador2.getX() + superposicion / 2,
+                                        jugador2.getY());
+
+                } else {
+
+                        superposicion = derecha2 - izquierda1;
+
+                        jugador1.establecerPosicion(
+                                        jugador1.getX() + superposicion / 2,
+                                        jugador1.getY());
+
+                        jugador2.establecerPosicion(
+                                        jugador2.getX() - superposicion / 2,
+                                        jugador2.getY());
+                }
+        }
+
+        @Override
+        public void resize(
+                        int width,
+                        int height) {
+
+                camara.viewportWidth = 1280;
+
+                camara.viewportHeight = 720;
+
+                camara.update();
+        }
+
+        @Override
+        public void pause() {
+        }
+
+        @Override
+        public void resume() {
+        }
+
+        @Override
+        public void hide() {
+        }
+
+        @Override
+        public void dispose() {
+
+                batch.dispose();
+
+                formas.dispose();
+
+                fuente.dispose();
+        }
 
 }

@@ -9,7 +9,6 @@ public class ControladorCombate {
 private Combate combate;
 private Controles controles;
 
-// Estados anteriores de las teclas
 private boolean jugador1SaltarAnterior;
 private boolean jugador1AtaqueFuerteAnterior;
 private boolean jugador1AtaqueSuaveAnterior;
@@ -31,24 +30,14 @@ public ControladorCombate(
 
 public void actualizar(float delta) {
 
-    // =========================
-    // ACTUALIZAR COMBATE
-    // =========================
-
     combate.actualizar(delta);
 
-    // Si terminó la ronda, no permitir
-    // más movimientos ni ataques.
     if (combate.terminoRonda()) {
         return;
     }
 
     Personaje jugador1 = combate.getJugador1();
     Personaje jugador2 = combate.getJugador2();
-
-    // =========================
-    // JUGADOR 1 - MOVIMIENTO
-    // =========================
 
     if (controles.jugador1Izquierda()) {
 
@@ -64,10 +53,6 @@ public void actualizar(float delta) {
         );
     }
 
-    // =========================
-    // JUGADOR 1 - SALTO
-    // =========================
-
     boolean salto1 =
             controles.jugador1Saltar();
 
@@ -77,10 +62,6 @@ public void actualizar(float delta) {
     }
 
     jugador1SaltarAnterior = salto1;
-
-    // =========================
-    // JUGADOR 1 - DEFENSA
-    // =========================
 
     if (controles.jugador1Defender()) {
 
@@ -98,10 +79,6 @@ public void actualizar(float delta) {
         );
     }
 
-    // =========================
-    // JUGADOR 2 - MOVIMIENTO
-    // =========================
-
     if (controles.jugador2Izquierda()) {
 
         jugador2.mover(
@@ -116,10 +93,6 @@ public void actualizar(float delta) {
         );
     }
 
-    // =========================
-    // JUGADOR 2 - SALTO
-    // =========================
-
     boolean salto2 =
             controles.jugador2Saltar();
 
@@ -129,10 +102,6 @@ public void actualizar(float delta) {
     }
 
     jugador2SaltarAnterior = salto2;
-
-    // =========================
-    // JUGADOR 2 - DEFENSA
-    // =========================
 
     if (controles.jugador2Defender()) {
 
@@ -150,16 +119,8 @@ public void actualizar(float delta) {
         );
     }
 
-    // =========================
-    // ACTUALIZAR SALTOS
-    // =========================
-
     jugador1.actualizarSalto(delta);
     jugador2.actualizarSalto(delta);
-
-    // =========================
-    // JUGADOR 1 - ATAQUE SUAVE
-    // =========================
 
     boolean ataqueSuave1 =
             controles.jugador1AtaqueSuave();
@@ -184,10 +145,6 @@ public void actualizar(float delta) {
     jugador1AtaqueSuaveAnterior =
             ataqueSuave1;
 
-    // =========================
-    // JUGADOR 1 - ATAQUE FUERTE
-    // =========================
-
     boolean ataqueFuerte1 =
             controles.jugador1AtaqueFuerte();
 
@@ -210,10 +167,6 @@ public void actualizar(float delta) {
 
     jugador1AtaqueFuerteAnterior =
             ataqueFuerte1;
-
-    // =========================
-    // JUGADOR 1 - ESPECIAL
-    // =========================
 
     boolean especial1 =
             controles.jugador1Especial();
@@ -238,10 +191,6 @@ public void actualizar(float delta) {
     jugador1EspecialAnterior =
             especial1;
 
-    // =========================
-    // JUGADOR 2 - ATAQUE SUAVE
-    // =========================
-
     boolean ataqueSuave2 =
             controles.jugador2AtaqueSuave();
 
@@ -265,10 +214,6 @@ public void actualizar(float delta) {
     jugador2AtaqueSuaveAnterior =
             ataqueSuave2;
 
-    // =========================
-    // JUGADOR 2 - ATAQUE FUERTE
-    // =========================
-
     boolean ataqueFuerte2 =
             controles.jugador2AtaqueFuerte();
 
@@ -291,10 +236,6 @@ public void actualizar(float delta) {
 
     jugador2AtaqueFuerteAnterior =
             ataqueFuerte2;
-
-    // =========================
-    // JUGADOR 2 - ESPECIAL
-    // =========================
 
     boolean especial2 =
             controles.jugador2Especial();
