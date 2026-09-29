@@ -22,6 +22,8 @@ public class PantallaCombate implements Screen {
 
         private SpriteBatch batch;
 
+        private Texture fondo;
+
         private BitmapFont fuente;
 
         private ShapeRenderer formas;
@@ -63,6 +65,8 @@ public class PantallaCombate implements Screen {
                 batch = new SpriteBatch();
 
                 fuente = new BitmapFont();
+
+                fondo = new Texture("fondo_pelea.jpg");
 
                 fuente.getData().setScale(2);
 
@@ -137,6 +141,19 @@ public class PantallaCombate implements Screen {
                 Gdx.gl.glClear(
                                 GL20.GL_COLOR_BUFFER_BIT);
 
+                batch.setProjectionMatrix(camara.combined);
+
+                batch.begin();
+
+                batch.draw(
+                                fondo,
+                                0,
+                                0,
+                                1280,
+                                720);
+
+                batch.end();
+
                 formas.setProjectionMatrix(
                                 camara.combined);
 
@@ -153,7 +170,7 @@ public class PantallaCombate implements Screen {
                                 0,
                                 0,
                                 1280,
-                                80);
+                                20);
 
                 if (jugador1.getEstado() == EstadoPersonaje.BLOQUEANDO) {
 
@@ -432,6 +449,8 @@ public class PantallaCombate implements Screen {
                 formas.dispose();
 
                 fuente.dispose();
+
+                fondo.dispose();
         }
 
 }

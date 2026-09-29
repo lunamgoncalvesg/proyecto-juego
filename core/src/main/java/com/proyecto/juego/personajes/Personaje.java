@@ -48,22 +48,19 @@ public class Personaje {
                 TipoAtaque.SUAVE,
                 1,
                 5,
-                0
-        );
+                0);
 
         ataqueBomba = new Ataque(
                 TipoAtaque.BOMBA,
                 5,
                 10,
-                3
-        );
+                3);
 
         ataqueEspecial = new Ataque(
                 TipoAtaque.ESPECIAL,
                 10,
                 15,
-                15
-        );
+                15);
     }
 
     public String getNombre() {
