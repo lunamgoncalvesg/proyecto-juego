@@ -35,19 +35,19 @@ public class PantallaResultado extends PantallaBase {
             titulo = "TENEMOS UN GANADOR";
             mensaje = "JUGADOR " + ganador + ": GANASTE!";
         }
-        fondo(delta, "05 / EL RESULTADO", titulo);
+        fondo(delta, titulo);
         panel(64, 140, 640, 390, victoria ? Tema.AMARILLO : Tema.ROJO);
         texto(mensaje, 96, 481, 2.2f, Tema.CREMA);
         if (jugadorLocal == 0) {
             texto("JUGADOR " + (3 - ganador) + ": PERDISTE", 96, 424, 1.8f, Tema.ROJO);
         }
-        texto("MARCADOR FINAL", 96, 365, 1.2f, Tema.GRIS);
+        texto("MARCADOR FINAL", 96, 390, 1.2f, Tema.GRIS);
         texto(rondas1 + "  -  " + rondas2, 96, 321, 4, Tema.AMARILLO);
         boton("VOLVER AL MENU", 140, 167, 480, 70, true);
         batch.begin();
-        personaje.dibujar(batch, victoria ? "win" : "lose", 971, 149, 390, false);
+        personaje.dibujar(batch, victoria ? "win" : "lose", 985, 149, 340, false);
         batch.end();
-        texto("Volviendo al menu en " + Math.max(1, (int) Math.ceil(5 - reloj)) + "...    ENTER: continuar", 676, 35, 1.1f, Tema.CREMA);
+        centrado("VOLVIENDO AL MENU EN " + Math.max(1, (int) Math.ceil(5 - reloj)) + "... ENTER: CONTINUAR", 640, 35, 1.1f, Tema.CREMA);
     }
 
     @Override

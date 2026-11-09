@@ -37,7 +37,9 @@ public final class SesionRed implements AutoCloseable {
                 return;
             }
             socket.setTcpNoDelay(true);
-            socket.setSoTimeout(10000);
+            // La sala puede quedar abierta mientras el rival carga el juego o configura
+            // el router; diez segundos cortaban esa espera aunque la conexión estuviera bien.
+            socket.setSoTimeout(120000);
             DataInputStream entrada = new DataInputStream(socket.getInputStream());
             DataOutputStream datos = new DataOutputStream(socket.getOutputStream());
             verificarVersion(entrada, datos);
@@ -66,7 +68,7 @@ public final class SesionRed implements AutoCloseable {
             servidor.close();
         } else {
             socket = new Socket();
-            socket.connect(new InetSocketAddress(direccion, PUERTO), 8000);
+            socket.connect(new InetSocketAddress(direccion.trim(), PUERTO), 15000);
         }
     }
 

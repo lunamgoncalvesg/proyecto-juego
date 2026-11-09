@@ -69,8 +69,8 @@ public class PantallaCombate extends PantallaBase {
     }
 
     private void ubicarJugadores() {
-        jugador1.establecerPosicion(150, 80);
-        jugador2.establecerPosicion(830, 80);
+        jugador1.establecerPosicion(70, 80);
+        jugador2.establecerPosicion(910, 80);
         poses[0] = poses[1] = 0;
         tiemposPose[0] = tiemposPose[1] = 0;
         caminando[0] = caminando[1] = false;
@@ -114,26 +114,12 @@ public class PantallaCombate extends PantallaBase {
     }
 
     private void mostrarResultado() {
-        int ganador = 2;
-        if (combate.getRondasJugador1() >= 2) {
-            ganador = 1;
-        }
-        int jugadorLocal = 0;
-        TipoPersonaje personajeResultado;
-        if (ganador == 1) {
-            personajeResultado = tipo1;
-        } else {
-            personajeResultado = tipo2;
-        }
-        if (red != null) {
-            if (red.esAnfitrion()) {
-                jugadorLocal = 1;
-                personajeResultado = tipo1;
-            } else {
-                jugadorLocal = 2;
-                personajeResultado = tipo2;
-            }
-        }
+        int ganador = combate.getRondasJugador1() >= 2 ? 1 : 2;
+        boolean anfitrion = red != null && red.esAnfitrion();
+        int jugadorLocal = red == null ? 0 : anfitrion ? 1 : 2;
+        TipoPersonaje personajeResultado = red == null
+            ? (ganador == 1 ? tipo1 : tipo2)
+            : (anfitrion ? tipo1 : tipo2);
         juego.setScreen(new PantallaResultado(juego, ganador, jugadorLocal, personajeResultado,
             combate.getRondasJugador1(), combate.getRondasJugador2()));
     }
@@ -165,14 +151,14 @@ public class PantallaCombate extends PantallaBase {
         resolverColision();
         caminando[0] = Math.abs(jugador1.getX() - x1) > 0.01f;
         caminando[1] = Math.abs(jugador2.getX() - x2) > 0.01f;
-        int[] ataques = {controlador.getAtaque1(), controlador.getAtaque2()};
         for (int i = 0; i < 2; i++) {
+            int ataque = i == 0 ? controlador.getAtaque1() : controlador.getAtaque2();
             tiemposPose[i] = Math.max(0, tiemposPose[i] - delta);
-            if (ataques[i] != 0) {
-                poses[i] = ataques[i];
-                if (ataques[i] == 3) {
+            if (ataque != 0) {
+                poses[i] = ataque;
+                if (ataque == 3) {
                     tiemposPose[i] = 0.45f;
-                } else if (ataques[i] == 2) {
+                } else if (ataque == 2) {
                     tiemposPose[i] = 0.3f;
                 } else {
                     tiemposPose[i] = 0.18f;
@@ -328,7 +314,7 @@ public class PantallaCombate extends PantallaBase {
     }
 
     private void dibujarCombate(float delta) {
-        fondo(delta, "", "");
+        fondo(delta, "");
         batch.begin();
         juego.fondo.dibujar(batch, 0, 75, 1280, 540);
         batch.end();
@@ -341,18 +327,20 @@ public class PantallaCombate extends PantallaBase {
         formas.setColor(Tema.BORDE);
         formas.end();
         batch.begin();
-        apariencia1.dibujar(batch, elegirPose(jugador1, 0), jugador1.getX() + 150, jugador1.getY(), 350, false);
-        apariencia2.dibujar(batch, elegirPose(jugador2, 1), jugador2.getX() + 150, jugador2.getY(), 350, true);
+        float centro1 = resultadoRonda || finalizado ? 225 : jugador1.getX() + 150;
+        float centro2 = resultadoRonda || finalizado ? 1055 : jugador2.getX() + 150;
+        apariencia1.dibujar(batch, elegirPose(jugador1, 0), centro1, jugador1.getY(), 350, false);
+        apariencia2.dibujar(batch, elegirPose(jugador2, 1), centro2, jugador2.getY(), 350, true);
         batch.end();
         dibujarBarras(64, jugador1, Tema.AMARILLO, false);
         dibujarBarras(736, jugador2, Tema.ROJO, true);
-        texto("J1 / " + tipo1, 64, 687, 1.35f, Tema.AMARILLO);
-        texto("J2 / " + tipo2, 864, 687, 1.35f, Tema.ROJO);
+        texto("J1 / " + tipo1.getNombreVisible(), 64, 687, 1.15f, Tema.AMARILLO);
+        texto("J2 / " + tipo2.getNombreVisible(), 830, 687, 1.15f, Tema.ROJO);
         centrado(String.format("%02d", (int) Math.ceil(combate.getTiempoRonda())), 640, 677, 3.1f, Tema.CREMA);
         texto("RONDAS  " + combate.getRondasJugador1() + " / 2", 64, 594, 1.25f, Tema.CREMA);
         texto("RONDAS  " + combate.getRondasJugador2() + " / 2", 1032, 594, 1.25f, Tema.CREMA);
-        dibujarIndicadoresAtaque(115, jugador1, combate.getRecargaBombaJugador1(), combate.getRecargaEspecialJugador1(), Tema.AMARILLO, false);
-        dibujarIndicadoresAtaque(945, jugador2, combate.getRecargaBombaJugador2(), combate.getRecargaEspecialJugador2(), Tema.ROJO, true);
+        dibujarIndicadoresAtaque(115, jugador1, combate.getRecargaBombaJugador1(), combate.getRecargaEspecialJugador1(), false);
+        dibujarIndicadoresAtaque(945, jugador2, combate.getRecargaBombaJugador2(), combate.getRecargaEspecialJugador2(), true);
         String ubicacion = "J1: IZQUIERDA / J2: DERECHA";
         if (red != null) {
             if (red.esAnfitrion()) {
@@ -372,19 +360,18 @@ public class PantallaCombate extends PantallaBase {
             centrado("ESPERANDO AL RIVAL", 640, 360, 2.4f, Tema.CREMA);
             centrado(red == null ? "" : red.getEstado(), 640, 310, 1.2f, Tema.GRIS);
         } else if (cuentaRegresiva > 0 && !finalizado) {
-            centrado("PREPARADOS", 640, 431, 1.5f, Tema.CREMA);
-            centrado("" + (int) Math.ceil(cuentaRegresiva), 640, 385, 5, Tema.ROJO);
+            centrado("PREPARADOS", 640, 500, 1.5f, Tema.CREMA);
+            centrado("" + (int) Math.ceil(cuentaRegresiva), 640, 418, 5, Tema.ROJO);
         } else if (resultadoRonda || finalizado) {
-            panel(320, 310, 640, 110, Tema.ROJO);
-            centrado(ganadorRonda == 0 ? "EMPATE" : "RONDA PARA JUGADOR " + ganadorRonda, 640, 384, 2.2f, Tema.CREMA);
-            centrado(finalizado ? "COMBATE TERMINADO" : "PREPARATE PARA LA SIGUIENTE", 640, 341, 1.2f, Tema.AMARILLO);
+            panel(300, 468, 680, 110, Tema.ROJO);
+            centrado(ganadorRonda == 0 ? "EMPATE" : "RONDA PARA JUGADOR " + ganadorRonda, 640, 535, 2.2f, Tema.CREMA);
+            centrado(finalizado ? "COMBATE TERMINADO" : "PREPARATE PARA LA SIGUIENTE", 640, 490, 1.2f, Tema.AMARILLO);
         }
     }
 
-    private void dibujarIndicadoresAtaque(float x, Personaje personaje, float bomba, float especial, Color color, boolean segundo) {
+    private void dibujarIndicadoresAtaque(float x, Personaje personaje, float bomba, float especial, boolean segundo) {
         float[] tiempos = {0, bomba, especial};
         float[] maximos = {1, personaje.getAtaqueBomba().getTiempoRecarga(), personaje.getAtaqueEspecial().getTiempoRecarga()};
-        float[] costos = {1, 5, 10};
         String[] nombres = {"GOLPE", "BOMBA", "ESPECIAL"};
         String[] teclas;
         if (red != null) {
@@ -399,17 +386,33 @@ public class PantallaCombate extends PantallaBase {
             float carga = Math.max(0, Math.min(1, 1 - tiempos[i] / maximos[i]));
             formas.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
             formas.setColor(Tema.BORDE);
-            formas.circle(centro, 39, 23, 48);
-            formas.setColor(Tema.PANEL);
-            formas.circle(centro, 39, 20, 48);
-            formas.setColor(personaje.getEstamina() >= costos[i] ? color : Tema.GRIS);
-            if (carga > 0) {
-                formas.arc(centro, 39, 20, 90, carga * 360, 48);
+            formas.circle(centro, 46, 22, 32);
+            formas.setColor(Tema.GRIS);
+            formas.circle(centro, 46, 18, 32);
+            if (carga >= 1) {
+                formas.setColor(Tema.AMARILLO);
+                formas.circle(centro, 46, 18, 32);
+            } else if (carga > 0) {
+                formas.setColor(Tema.AMARILLO);
+                float barrido = carga * 360;
+                int segmentos = Math.max(1, (int) Math.ceil(barrido / 6));
+                for (int segmento = 0; segmento < segmentos; segmento++) {
+                    float inicio = -90 + barrido * segmento / segmentos;
+                    float fin = -90 + barrido * (segmento + 1) / segmentos;
+                    formas.triangle(centro, 46,
+                        centro + (float) Math.cos(Math.toRadians(inicio)) * 18,
+                        46 + (float) Math.sin(Math.toRadians(inicio)) * 18,
+                        centro + (float) Math.cos(Math.toRadians(fin)) * 18,
+                        46 + (float) Math.sin(Math.toRadians(fin)) * 18);
+                }
             }
             formas.end();
-            centrado(nombres[i], centro, 77, 0.85f, Tema.CREMA);
-            centrado(tiempos[i] > 0 ? "" + (int) Math.ceil(tiempos[i]) : "OK", centro, 45, 0.85f, Tema.FONDO);
-            centrado(teclas[i], centro, 13, 0.85f, Tema.GRIS);
+            formas.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Line);
+            formas.setColor(Tema.BORDE);
+            formas.circle(centro, 46, 22, 32);
+            formas.end();
+            centrado(nombres[i], centro, 82, 0.78f, Tema.CREMA);
+            centrado(teclas[i], centro, 12, 0.8f, Tema.GRIS);
         }
     }
 

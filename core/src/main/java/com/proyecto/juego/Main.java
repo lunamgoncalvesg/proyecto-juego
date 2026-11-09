@@ -22,7 +22,19 @@ public class Main extends Game {
     @Override
     public void create() {
         fondo = new FondoAnimado();
+        setScreen(new PantallaPortada(this));
+    }
+
+    public void iniciarPartida() {
+        setScreen(new PantallaSeleccionModo(this));
+    }
+
+    public void mostrarPresentacion() {
         setScreen(new PantallaCinematica(this));
+    }
+
+    public void terminarPresentacion() {
+        setScreen(new PantallaInicio(this));
     }
 
     @Override

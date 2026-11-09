@@ -23,7 +23,7 @@ Requiere Java 17 o superior. Abrir el JAR o ejecutar:
 java -jar lwjgl3/build/libs/Proyecto-Juego-1.0.0.jar
 ```
 
-La presentación cuenta, sin texto, cómo el entrenamiento del equilibrado se convierte en un desafío entre los tres personajes. Se puede omitir con ENTER, ESPACIO o ESC. El menú permite jugar, abrir el GitHub del proyecto o salir. Los botones también funcionan con el mouse.
+Al abrir, se muestra la portada arcade de `assets/ui/portada.png`; ENTER o cualquier clic inicia la presentación del gato que llega al templo, se enfrenta con la tortuga y aprende a entrenar junto a ella. Al terminar, aparece el menú. JUGAR abre la selección de modo; también se puede abrir el GitHub o salir. La presentación se puede omitir con ENTER, ESPACIO o ESC.
 
 Elegir el modo, seleccionar personajes, revisar los controles y presionar JUGAR. Gana quien consigue dos rondas. Cada ronda dura hasta 60 segundos; los empates se repiten. Al terminar se muestra el resultado y se vuelve al menú. ESC durante el combate abandona la partida.
 
@@ -42,24 +42,26 @@ Al salir, incluso al cerrar la ventana, aparecen los créditos con música y el 
 
 En una misma computadora, cada jugador usa su columna. En red, cada persona puede usar cualquiera de las dos columnas o combinarlas: todas sus teclas controlan únicamente a su personaje. El anfitrión es J1, a la izquierda, y el invitado J2, a la derecha.
 
-## Jugar entre dos computadoras
+## Jugar por Internet o en una red local
 
-1. Copiar el mismo JAR a ambas computadoras, instalar Java y conectarlas a la misma red local.
-2. En ambas, entrar en JUGAR → EN DOS COMPUTADORAS.
-3. El anfitrión elige CREAR UNA PARTIDA y comunica la IP que aparece en pantalla.
-4. La otra persona elige UNIRME A UNA PARTIDA y escribe esa IP.
-5. Cada persona presiona CONTINUAR, elige personaje y avanza hasta JUGAR. El anfitrión debe llegar primero a la pantalla de espera.
-6. Al conectarse ambos comienza la cuenta regresiva.
+La conexión es directa entre las dos computadoras (TCP, puerto 54555). No requiere que estén en la misma red, pero el anfitrión debe poder recibir conexiones desde Internet:
 
-La conexión usa TCP en el puerto 54555. Permitir Java en redes privadas si Windows lo solicita. Para abrir dos instancias en una computadora, usar `127.0.0.1`. Si alguien abandona o se corta la conexión, el otro vuelve al menú con un aviso. No incluye servidor público ni salas por Internet.
+1. Copiar el mismo JAR a ambas computadoras e instalar Java 17 o superior.
+2. En el router del anfitrión, reenviar el puerto **TCP 54555** a la IPv4 local de la computadora donde corre el juego. No hace falta abrir UDP.
+3. Permitir Java en el firewall del anfitrión y dejar el juego en la pantalla de espera.
+4. El anfitrión comparte su IPv4 pública o un nombre DDNS. La IP local que muestra el juego sirve solo para conexiones en la misma red.
+5. La otra persona entra en **JUGAR → EN DOS COMPUTADORAS → UNIRME A UNA PARTIDA** e ingresa esa IPv4 pública o dominio, sin `http://` ni `:54555`.
+6. Ambos eligen su personaje y presionan **JUGAR**. El anfitrión debe iniciar primero y permanecer esperando.
+
+Si el proveedor de Internet usa CGNAT o bloquea conexiones entrantes, el reenvío del router no alcanza: hace falta pedir una IPv4 pública al proveedor o usar una VPN de juegos que permita conexiones directas. Para dos instancias en la misma computadora, usar `127.0.0.1`; para una red local, usar la IPv4 local del anfitrión. Si alguien abandona o se corta la conexión, el otro vuelve al menú con un aviso. El proyecto no incluye salas públicas, emparejamiento ni un servidor alojado: el anfitrión comparte la dirección y recibe la conexión.
 
 ## Personajes y ataques
 
 | Personaje | Velocidad | Daño | Recarga bomba | Recarga especial |
 | --- | ---: | ---: | ---: | ---: |
-| Equilibrado | 300 | ×1 | 3 s | 15 s |
-| Rápido | 400 | ×0,8 | 2 s | 10 s |
-| Fuerte | 220 | ×1,4 | 4 s | 20 s |
+| Gato guerrero | 300 | ×1 | 3 s | 15 s |
+| Tortuga luchadora | 400 | ×0,8 | 2 s | 10 s |
+| Hombre fuerte | 220 | ×1,4 | 4 s | 20 s |
 
 El golpe suave consume 1 de estamina, la bomba 5 y el especial 10. Sus daños base son 5, 10 y 15. El bloqueo evita el daño. La estamina se recupera a razón de 1 por segundo sin atacar ni bloquear. La vida se reinicia al comenzar cada ronda.
 
@@ -67,7 +69,7 @@ Las barras superiores muestran vida y estamina. Los círculos inferiores se rell
 
 ## Recursos
 
-Los personajes están en `assets/personajes/equilibrado/arcade.png`, `assets/personajes/rapido/arcade.png` y `assets/personajes/fuerte/arcade.png`. Cada hoja contiene nueve poses sobre fondo transparente:
+Los personajes están en `assets/personajes/equilibrado` (guerrero felino), `assets/personajes/rapido` (tortuga luchadora) y `assets/personajes/fuerte` (hombre fuerte). Cada pose se guarda en su propio PNG para evitar que se mezclen celdas vecinas. Los archivos `arcade.png` se conservan como hojas de respaldo con este orden 3×3:
 
 | Fila | Columna 1 | Columna 2 | Columna 3 |
 | --- | --- | --- | --- |
@@ -75,15 +77,16 @@ Los personajes están en `assets/personajes/equilibrado/arcade.png`, `assets/per
 | 2 | Defender | Golpear | Patear |
 | 3 | Especial | Victoria | Derrota |
 
-También se pueden usar imágenes individuales en cada carpeta: `idle.png`, `walk.png`, `jump.png`, `block.png`, `punch.png`, `kick.png`, `special.png`, `win.png` y `lose.png`, más `portrait.png` para la selección. Para usarlas, retirar `arcade.png`, que tiene prioridad. Si falta una pose o el retrato, se usa `idle.png`. Las imágenes deben mirar hacia la derecha; el juego invierte las del jugador 2 y ajusta el tamaño proporcionalmente.
+Las imágenes de pose deben mirar hacia la derecha; el juego invierte las del jugador 2 y ajusta el tamaño proporcionalmente. Si falta una pose individual, se usa la hoja `arcade.png`; si falta también esa pose, se usa `idle.png`.
 
 - `assets/fondo_dia.gif`: fondo de 07:00 a 18:59.
 - `assets/fondo_noche.gif`: fondo de 19:00 a 06:59.
-- `assets/cinematicas/presentacion.webm`: entrenamiento y desafío entre los personajes, sin texto ni audio.
+- `assets/ui/portada.png`: imagen estática de inicio, dibujada fuera del juego.
+- `assets/cinematicas/presentacion.webm`: secuencia de escenas con frases que cuentan la historia del gato, el maestro y la tortuga.
 - `assets/cinematicas/creditos.txt`: nombres y textos de los créditos.
 - `assets/cinematicas/musica_creditos.mp3`: música del cierre. También se admiten OGG y WAV con el mismo nombre base.
 
-El fondo se elige según el reloj de cada computadora y se revisa cada 30 segundos. Los GIF se reproducen en bucle y admiten hasta 300 cuadros y 64 millones de píxeles totales. El video puede reemplazarse por WebM con VP8 o VP9.
+El fondo conserva su archivo y presentación originales. Se elige según el reloj de cada computadora y se revisa cada 30 segundos. Los GIF se reproducen en bucle y admiten hasta 300 cuadros y 64 millones de píxeles totales.
 
 Para cambiar recursos sin recompilar, colocar una carpeta `assets` junto al JAR con las mismas rutas. Tiene prioridad sobre los archivos incluidos. Reiniciar el juego después de modificarlos.
 

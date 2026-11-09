@@ -27,7 +27,7 @@ public class PantallaSeleccionModo extends PantallaBase {
             elegir();
             return;
         }
-        fondo(delta, "", "DONDE VAN A JUGAR?");
+        fondo(delta, "DONDE VAN A JUGAR?");
         for (int i = 0; i < 3; i++) {
             if (boton(titulos[i], 300, 420 - i * 120, 680, 85, opcion == i)) {
                 opcion = i;

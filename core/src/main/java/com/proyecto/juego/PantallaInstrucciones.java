@@ -33,7 +33,7 @@ public class PantallaInstrucciones extends PantallaBase {
             juego.setScreen(new PantallaCombate(juego, tipo1, enRed ? tipo1 : tipo2, red));
             return;
         }
-        fondo(delta, "03 / ANTES DEL PRIMER GOLPE", "CONOCE TUS CONTROLES");
+        fondo(delta, "CONOCE TUS CONTROLES");
         panel(64, 166, 1152, 390, Tema.AMARILLO);
         texto("ACCION", 95, 522, 1.3f, Tema.GRIS);
         texto(enRed ? "ESQUEMA A" : "JUGADOR 1 / IZQUIERDA", 424, 522, 1.3f, Tema.AMARILLO);
@@ -46,7 +46,7 @@ public class PantallaInstrucciones extends PantallaBase {
         }
         centrado(enRed ? "AMBOS ESQUEMAS MUEVEN SOLO A TU PERSONAJE. PODES COMBINARLOS." :
             "EN ESTA COMPUTADORA, CADA JUGADOR USA SU PROPIO ESQUEMA.", 640, 132, 1.2f, Tema.CREMA);
-        centrado("Recargas: rapido 2 / 10 s, equilibrado 3 / 15 s, fuerte 4 / 20 s. Gana quien llega a 2 rondas.", 640, 102, 1.1f, Tema.GRIS);
+        centrado("Recargas: tortuga 2 / 10 s, gato 3 / 15 s, hombre fuerte 4 / 20 s. Gana quien llega a 2 rondas.", 640, 102, 1.0f, Tema.GRIS);
         boton("JUGAR", 440, 20, 400, 64, true);
     }
 }

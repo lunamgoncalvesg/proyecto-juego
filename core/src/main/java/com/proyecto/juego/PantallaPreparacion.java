@@ -13,39 +13,23 @@ public class PantallaPreparacion extends PantallaBase {
     private int indicePersonaje1, indicePersonaje2 = 1, opcionConexion, jugadorQueElige = 1;
     private boolean configurandoConexion;
     private String ip = "", error = "";
-    private final String[] nombres = {"EQUILIBRADO", "RAPIDO", "FUERTE"};
-    private final String[] descripciones = {"Balanceado. Recargas: 3 / 15 s", "Mas rapido. Recargas: 2 / 10 s", "Mas fuerte. Recargas: 4 / 20 s"};
-    private final String misIps;
+    private final String[] nombres = {
+        TipoPersonaje.EQUILIBRADO.getNombreVisible(), TipoPersonaje.RAPIDO.getNombreVisible(),
+        TipoPersonaje.FUERTE.getNombreVisible()
+    };
+    private final String[] descripciones = {
+        "VEL. 300 / DAÑO x1,0 / " + TipoPersonaje.EQUILIBRADO.getHabilidadEspecial(),
+        "VEL. 400 / DAÑO x0,8 / " + TipoPersonaje.RAPIDO.getHabilidadEspecial(),
+        "VEL. 220 / DAÑO x1,4 / " + TipoPersonaje.FUERTE.getHabilidadEspecial()
+    };
 
     public PantallaPreparacion(Main juego, boolean enRed) {
         super(juego);
         this.enRed = enRed;
         configurandoConexion = enRed;
-        misIps = obtenerIps();
         for (int i = 0; i < 3; i++) {
             personajes[i] = new Apariencia(TipoPersonaje.values()[i]);
         }
-    }
-
-    private String obtenerIps() {
-        java.util.List<String> direcciones = new java.util.ArrayList<String>();
-        try {
-            java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                java.net.NetworkInterface interfaz = interfaces.nextElement();
-                if (!interfaz.isUp() || interfaz.isLoopback() || interfaz.isVirtual()) {
-                    continue;
-                }
-                java.util.Enumeration<java.net.InetAddress> ips = interfaz.getInetAddresses();
-                while (ips.hasMoreElements()) {
-                    java.net.InetAddress direccion = ips.nextElement();
-                    if (direccion instanceof java.net.Inet4Address && !direccion.isLinkLocalAddress()) {
-                        direcciones.add(direccion.getHostAddress());
-                    }
-                }
-            }
-        } catch (java.net.SocketException ignored) { }
-        return direcciones.isEmpty() ? "Consulta tu IPv4 con ipconfig" : String.join(" / ", direcciones);
     }
 
     @Override
@@ -56,7 +40,8 @@ public class PantallaPreparacion extends PantallaBase {
                 if (configurandoConexion && opcionConexion == 1) {
                     if (c == '\b' && !ip.isEmpty()) {
                         ip = ip.substring(0, ip.length() - 1);
-                    } else if ((c >= '0' && c <= '9' || c == '.') && ip.length() < 15) {
+                    } else if ((c >= '0' && c <= '9' || c >= 'a' && c <= 'z' ||
+                        c >= 'A' && c <= 'Z' || c == '.' || c == '-') && ip.length() < 253) {
                         ip += c;
                     }
                     error = "";
@@ -70,10 +55,10 @@ public class PantallaPreparacion extends PantallaBase {
                     (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT))) {
                     String texto = Gdx.app.getClipboard().getContents();
                     if (texto != null) {
-                        ip = texto.trim().replaceAll("[^0-9.]", "");
+                        ip = texto.trim().replaceAll("[^A-Za-z0-9.-]", "");
                     }
-                    if (ip.length() > 15) {
-                        ip = ip.substring(0, 15);
+                    if (ip.length() > 253) {
+                        ip = ip.substring(0, 253);
                     }
                     return true;
                 }
@@ -114,15 +99,15 @@ public class PantallaPreparacion extends PantallaBase {
             confirmarPersonaje();
             return;
         }
-        fondo(delta, "", enRed ? "ELEGI TU PERSONAJE" : "JUGADOR " + jugadorQueElige + ": ELEGI TU PERSONAJE");
+        fondo(delta, enRed ? "ELEGI TU PERSONAJE" : "JUGADOR " + jugadorQueElige + ": ELEGI TU PERSONAJE");
         for (int i = 0; i < 3; i++) {
             float x = 64 + i * 391;
             panel(x, 237, 370, 330, elegido == i ? Tema.AMARILLO : Tema.BORDE);
             batch.begin();
             personajes[i].retrato(batch, x + 55, 332, 260, 210);
             batch.end();
-            centrado(nombres[i], x + 185, 309, 1.9f, Tema.CREMA);
-            centrado(descripciones[i], x + 185, 271, 1.1f, Tema.GRIS);
+            centrado(nombres[i], x + 185, 298, 1.75f, Tema.CREMA);
+            centrado(descripciones[i], x + 185, 255, 0.75f, Tema.GRIS);
             if (clic(x, 237, 370, 330)) {
                 if (jugadorQueElige == 1) {
                     indicePersonaje1 = i;
@@ -183,7 +168,7 @@ public class PantallaPreparacion extends PantallaBase {
                 return;
             }
         }
-        fondo(delta, "", "JUGAR EN RED");
+        fondo(delta, "JUGAR EN RED");
         if (boton("CREAR UNA PARTIDA", 270, 452, 740, 75, opcionConexion == 0)) {
             opcionConexion = 0;
             error = "";
@@ -193,14 +178,18 @@ public class PantallaPreparacion extends PantallaBase {
             error = "";
         }
         if (opcionConexion == 0) {
-            centrado("La otra persona elige UNIRME y escribe tu IP:", 640, 300, 1.35f, Tema.CREMA);
-            centrado(misIps, 640, 259, 1.7f, Tema.AMARILLO);
+            centrado("PARTIDA LISTA", 640, 309, 1.8f, Tema.AMARILLO);
+            centrado("Compartí la dirección de esta partida con tu rival.", 640, 272, 1.15f, Tema.CREMA);
+            centrado("Esperando rival...", 640, 229, 1.1f, Tema.GRIS);
         } else {
-            centrado("Escribi la IP de la computadora que creo la partida:", 640, 302, 1.35f, Tema.CREMA);
-            panel(390, 230, 500, 51, Tema.AMARILLO);
-            centrado(ip.isEmpty() ? "Ejemplo: 192.168.1.10" : ip + ((int) (reloj * 2) % 2 == 0 ? "_" : ""), 640, 267, 1.6f, ip.isEmpty() ? Tema.GRIS : Tema.CREMA);
+            centrado("ESCRIBI LA DIRECCION DE TU RIVAL:", 640, 314, 1.35f, Tema.CREMA);
+            panel(300, 238, 680, 51, Tema.AMARILLO);
+            String visible = ip.length() > 52 ? "..." + ip.substring(ip.length() - 52) : ip;
+            float escalaDireccion = visible.length() > 40 ? 0.95f : 1.25f;
+            centrado(visible.isEmpty() ? "IP o dominio" : visible + ((int) (reloj * 2) % 2 == 0 ? "_" : ""),
+                640, 256, escalaDireccion, ip.isEmpty() ? Tema.GRIS : Tema.CREMA);
         }
-        centrado(error.isEmpty() ? "Las dos computadoras deben estar en la misma red." : error, 640, 198, 1.2f, error.isEmpty() ? Tema.GRIS : Tema.ROJO);
+        centrado(error.isEmpty() ? "" : error, 640, 174, 1.05f, Tema.ROJO);
         if (boton("CONTINUAR", 440, 91, 400, 70, true)) {
             confirmarConexion();
             return;
@@ -210,19 +199,32 @@ public class PantallaPreparacion extends PantallaBase {
 
     private void confirmarConexion() {
         if (opcionConexion == 1) {
-            String[] partes = ip.split("\\.", -1);
-            if (partes.length != 4) {
-                error = "Escribi una IP valida, por ejemplo 192.168.1.10";
+            String destino = ip.trim();
+            if (!esDestinoValido(destino)) {
+                error = "La dirección no es válida.";
                 return;
             }
-            for (String parte : partes) {
-                if (!parte.matches("[0-9]{1,3}") || Integer.parseInt(parte) > 255) {
-                    error = "La IP no es valida. Revisala.";
-                    return;
-                }
-            }
+            ip = destino;
         }
         configurandoConexion = false;
+    }
+
+    private boolean esDestinoValido(String destino) {
+        if (destino.isEmpty() || destino.length() > 253 || destino.startsWith(".") || destino.endsWith(".")) {
+            return false;
+        }
+        String[] partes = destino.split("\\.", -1);
+        boolean ipv4 = partes.length == 4;
+        for (String parte : partes) {
+            if (parte.isEmpty() || parte.length() > 63 || !parte.matches("[A-Za-z0-9-]+") ||
+                parte.startsWith("-") || parte.endsWith("-")) {
+                return false;
+            }
+            if (!parte.matches("[0-9]{1,3}") || Integer.parseInt(parte) > 255) {
+                ipv4 = false;
+            }
+        }
+        return ipv4 || destino.matches("(?i).*[a-z].*");
     }
 
     private void confirmarPersonaje() {

@@ -2,15 +2,13 @@ package com.proyecto.juego;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.proyecto.juego.visual.Apariencia;
 import com.proyecto.juego.visual.Tema;
-import com.proyecto.juego.personajes.TipoPersonaje;
 
+/** Menú principal tras la portada. */
 public class PantallaInicio extends PantallaBase {
     private int opcion;
-    private final Apariencia personaje = new Apariencia(TipoPersonaje.EQUILIBRADO);
     private final String aviso;
-    private final String[] opciones = {"JUGAR", "IR AL GITHUB", "SALIR"};
+    private final String[] opciones = {"JUGAR", "GITHUB", "SALIR"};
 
     public PantallaInicio(Main juego) {
         this(juego, "");
@@ -33,36 +31,28 @@ public class PantallaInicio extends PantallaBase {
             elegir();
             return;
         }
-        fondo(delta, "", "STREET FIGHTER PONELE");
+        fondo(delta, "");
+        centrado("MENU PRINCIPAL", 640, 615, 2.2f, Tema.CREMA);
         for (int i = 0; i < opciones.length; i++) {
-            if (boton(opciones[i], 160, 410 - i * 105, 480, 80, opcion == i)) {
+            if (boton(opciones[i], 430, 380 - i * 92, 420, 60, opcion == i)) {
                 opcion = i;
                 elegir();
                 return;
             }
         }
-        batch.begin();
-        personaje.dibujar(batch, "idle", 935, 145, 390, false);
-        batch.end();
         if (!aviso.isEmpty()) {
-            centrado(aviso, 640, 113, 1.3f, Tema.ROJO);
+            centrado(aviso, 640, 99, 0.9f, Tema.ROJO);
         }
-        centrado("Hace clic en una opcion o usa las flechas y ENTER.", 640, 40, 1.35f, Tema.CREMA);
+        centrado("FLECHAS + ENTER / CLIC", 640, 32, 0.82f, Tema.GRIS);
     }
 
     private void elegir() {
         if (opcion == 0) {
-            juego.setScreen(new PantallaSeleccionModo(juego));
+            juego.iniciarPartida();
         } else if (opcion == 1) {
             Gdx.net.openURI("https://github.com/lunamgoncalvesg/proyecto-juego");
         } else {
             juego.salir();
         }
-    }
-
-    @Override
-    public void dispose() {
-        personaje.dispose();
-        super.dispose();
     }
 }

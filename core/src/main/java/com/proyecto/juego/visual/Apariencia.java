@@ -38,28 +38,18 @@ public final class Apariencia implements Disposable {
     private Texture textura(String pose) {
         if (!texturas.containsKey(pose)) {
             FileHandle imagen = archivo(pose);
-            if (!imagen.exists()) {
-                imagen = archivo("idle");
+            Pixmap poseCompleta = cargarPose(imagen, pose);
+            Pixmap pixeles = recortarTransparencia(poseCompleta);
+            if (pixeles != poseCompleta) {
+                poseCompleta.dispose();
             }
-            Pixmap pixeles = cargarPose(imagen, pose);
             try {
-                int izquierda = pixeles.getWidth(), derecha = -1, arriba = pixeles.getHeight(), abajo = -1;
-                for (int y = 0; y < pixeles.getHeight(); y++) {
-                    for (int x = 0; x < pixeles.getWidth(); x++) {
-                        if ((pixeles.getPixel(x, y) & 255) < 128) {
-                            continue;
-                        }
-                        izquierda = Math.min(izquierda, x);
-                        derecha = Math.max(derecha, x);
-                        arriba = Math.min(arriba, y);
-                        abajo = Math.max(abajo, y);
-                    }
-                }
                 Texture textura = new Texture(pixeles);
                 textura.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
                 texturas.put(pose, textura);
-                regiones.put(pose, derecha < izquierda ? new TextureRegion(textura) :
-                    new TextureRegion(textura, izquierda, arriba, derecha - izquierda + 1, abajo - arriba + 1));
+                // Cada pose tiene su propia textura recortada físicamente. Así las
+                // coordenadas de UV no pueden tomar píxeles de otra fila del atlas.
+                regiones.put(pose, new TextureRegion(textura));
             } finally {
                 pixeles.dispose();
             }
@@ -67,8 +57,37 @@ public final class Apariencia implements Disposable {
         return texturas.get(pose);
     }
 
+    private Pixmap recortarTransparencia(Pixmap origen) {
+        int izquierda = origen.getWidth(), derecha = -1;
+        int arriba = origen.getHeight(), abajo = -1;
+        for (int y = 0; y < origen.getHeight(); y++) {
+            for (int x = 0; x < origen.getWidth(); x++) {
+                if ((origen.getPixel(x, y) & 255) == 0) {
+                    continue;
+                }
+                izquierda = Math.min(izquierda, x);
+                derecha = Math.max(derecha, x);
+                arriba = Math.min(arriba, y);
+                abajo = Math.max(abajo, y);
+            }
+        }
+        if (derecha < izquierda) {
+            return origen;
+        }
+        Pixmap recortado = new Pixmap(derecha - izquierda + 1, abajo - arriba + 1, Pixmap.Format.RGBA8888);
+        recortado.setBlending(Pixmap.Blending.None);
+        recortado.drawPixmap(origen, 0, 0, izquierda, arriba, recortado.getWidth(), recortado.getHeight());
+        return recortado;
+    }
+
     private Pixmap cargarPose(FileHandle imagen, String pose) {
-        if (hoja().exists()) {
+        // Si hay un archivo individual, siempre tiene prioridad sobre la hoja.
+        // Así una pose nunca puede muestrear píxeles de la celda vecina.
+        if (imagen.exists()) {
+            return new Pixmap(imagen);
+        } else if (!hoja().exists()) {
+            return new Pixmap(archivo("idle"));
+        } else {
             Pixmap completa = new Pixmap(hoja());
             String[] poses = {"idle", "walk", "jump", "block", "punch", "kick", "special", "win", "lose"};
             int indice = 0;
@@ -77,43 +96,17 @@ public final class Apariencia implements Disposable {
                     indice = i;
                 }
             }
-            int[] xs = cortes(completa, true, 0, completa.getHeight());
-            int[] ys = cortes(completa, false, xs[indice % 3], xs[indice % 3 + 1]);
-            int x = xs[indice % 3], y = ys[indice / 3];
-            int ancho = xs[indice % 3 + 1] - x, alto = ys[indice / 3 + 1] - y;
+            int columna = indice % 3, fila = indice / 3;
+            int x = columna * completa.getWidth() / 3;
+            int y = fila * completa.getHeight() / 3;
+            int ancho = (columna + 1) * completa.getWidth() / 3 - x;
+            int alto = (fila + 1) * completa.getHeight() / 3 - y;
             Pixmap pixeles = new Pixmap(ancho, alto, Pixmap.Format.RGBA8888);
             pixeles.setBlending(Pixmap.Blending.None);
             pixeles.drawPixmap(completa, 0, 0, x, y, ancho, alto);
             completa.dispose();
             return pixeles;
-        } else {
-            return new Pixmap(imagen);
         }
-    }
-
-    private int[] cortes(Pixmap imagen, boolean vertical, int desde, int hasta) {
-        int longitud = vertical ? imagen.getWidth() : imagen.getHeight();
-
-        int[] cortes = {0, longitud / 3, longitud * 2 / 3, longitud};
-        for (int i = 1; i <= 2; i++) {
-            int ideal = cortes[i], mejor = Integer.MAX_VALUE, distancia = Integer.MAX_VALUE;
-            for (int posicion = ideal - longitud / 12; posicion <= ideal + longitud / 12; posicion++) {
-                int ocupados = 0;
-                for (int j = desde; j < hasta; j++) {
-                    int pixel = vertical ? imagen.getPixel(posicion, j) : imagen.getPixel(j, posicion);
-                    if ((pixel & 255) >= 128) {
-                        ocupados++;
-                    }
-                }
-                int diferencia = Math.abs(posicion - ideal);
-                if (ocupados < mejor || ocupados == mejor && diferencia < distancia) {
-                    mejor = ocupados;
-                    distancia = diferencia;
-                    cortes[i] = posicion;
-                }
-            }
-        }
-        return cortes;
     }
 
     public TextureRegion region(String pose, boolean izquierda) {
@@ -127,14 +120,13 @@ public final class Apariencia implements Disposable {
 
     public void dibujar(SpriteBatch batch, String pose, float centro, float piso, float alto, boolean izquierda) {
         TextureRegion imagen = region(pose, izquierda);
-        float proporcionAltura = 1;
-        if (pose.equals("lose")) {
-            proporcionAltura = 0.35f;
-        } else if (pose.equals("block")) {
-            proporcionAltura = 0.9f;
-        }
+        float proporcionAltura = pose.equals("block") ? 0.9f : 1f;
         float altura = alto * proporcionAltura;
         float ancho = altura * imagen.getRegionWidth() / imagen.getRegionHeight();
+        if (pose.equals("lose")) {
+            ancho = alto * 1.6f;
+            altura = ancho * imagen.getRegionHeight() / imagen.getRegionWidth();
+        }
         if (ancho > alto * 1.6f) {
             altura *= alto * 1.6f / ancho;
             ancho = alto * 1.6f;
