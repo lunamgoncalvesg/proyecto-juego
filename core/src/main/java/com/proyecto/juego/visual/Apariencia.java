@@ -153,7 +153,7 @@ public final class Apariencia implements Disposable {
             return Tema.AMARILLO;
         }
         if (tipo == TipoPersonaje.FUERTE) {
-            return Tema.ROJO;
+            return Tema.AMARILLO;
         }
         return Tema.CREMA;
     }

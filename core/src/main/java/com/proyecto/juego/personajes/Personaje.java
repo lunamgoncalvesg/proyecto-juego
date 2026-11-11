@@ -247,6 +247,10 @@ public class Personaje {
         y = datos.readFloat();
         vida = datos.readFloat();
         estamina = datos.readFloat();
-        estado = EstadoPersonaje.values()[datos.readInt()];
+        int ordinal = datos.readInt();
+        if (ordinal < 0 || ordinal >= EstadoPersonaje.values().length) {
+            throw new IOException("Estado de personaje invalido");
+        }
+        estado = EstadoPersonaje.values()[ordinal];
     }
 }

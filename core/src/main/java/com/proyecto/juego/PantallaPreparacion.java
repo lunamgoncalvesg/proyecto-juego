@@ -4,23 +4,25 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.proyecto.juego.personajes.TipoPersonaje;
+import com.proyecto.juego.red.SesionRed;
 import com.proyecto.juego.visual.Apariencia;
 import com.proyecto.juego.visual.Tema;
 
 public class PantallaPreparacion extends PantallaBase {
     private final boolean enRed;
     private final Apariencia[] personajes = new Apariencia[3];
-    private int indicePersonaje1, indicePersonaje2 = 1, opcionConexion, jugadorQueElige = 1;
+    private int indicePersonaje1, indicePersonaje2 = 1, jugadorQueElige = 1;
     private boolean configurandoConexion;
-    private String ip = "", error = "";
+    private String ip = "181.46.47.81", error = "";
+    private SesionRed red;
     private final String[] nombres = {
         TipoPersonaje.EQUILIBRADO.getNombreVisible(), TipoPersonaje.RAPIDO.getNombreVisible(),
         TipoPersonaje.FUERTE.getNombreVisible()
     };
     private final String[] descripciones = {
-        "VEL. 300 / DAÑO x1,0 / " + TipoPersonaje.EQUILIBRADO.getHabilidadEspecial(),
-        "VEL. 400 / DAÑO x0,8 / " + TipoPersonaje.RAPIDO.getHabilidadEspecial(),
-        "VEL. 220 / DAÑO x1,4 / " + TipoPersonaje.FUERTE.getHabilidadEspecial()
+        "EQUILIBRADO",
+        "RÁPIDO, PERO DÉBIL",
+        "FUERTE, PERO LENTO"
     };
 
     public PantallaPreparacion(Main juego, boolean enRed) {
@@ -37,7 +39,7 @@ public class PantallaPreparacion extends PantallaBase {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean keyTyped(char c) {
-                if (configurandoConexion && opcionConexion == 1) {
+                if (configurandoConexion && enRed) {
                     if (c == '\b' && !ip.isEmpty()) {
                         ip = ip.substring(0, ip.length() - 1);
                     } else if ((c >= '0' && c <= '9' || c >= 'a' && c <= 'z' ||
@@ -51,7 +53,7 @@ public class PantallaPreparacion extends PantallaBase {
 
             @Override
             public boolean keyDown(int tecla) {
-                if (configurandoConexion && opcionConexion == 1 && tecla == Input.Keys.V &&
+                if (configurandoConexion && enRed && tecla == Input.Keys.V &&
                     (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT))) {
                     String texto = Gdx.app.getClipboard().getContents();
                     if (texto != null) {
@@ -69,12 +71,16 @@ public class PantallaPreparacion extends PantallaBase {
 
     @Override
     public void render(float delta) {
+        if (enRed && red != null && red.haTerminado() && !configurandoConexion) {
+            error = red.getEstado();
+            red = null;
+            configurandoConexion = true;
+        }
         if (tecla(Input.Keys.ESCAPE)) {
             if (!enRed && jugadorQueElige == 2) {
                 jugadorQueElige = 1;
-            } else if (enRed && !configurandoConexion) {
-                configurandoConexion = true;
             } else {
+                if (red != null) red.close();
                 juego.setScreen(new PantallaSeleccionModo(juego));
                 return;
             }
@@ -99,7 +105,7 @@ public class PantallaPreparacion extends PantallaBase {
             confirmarPersonaje();
             return;
         }
-        fondo(delta, enRed ? "ELEGI TU PERSONAJE" : "JUGADOR " + jugadorQueElige + ": ELEGI TU PERSONAJE");
+        fondo(delta);
         for (int i = 0; i < 3; i++) {
             float x = 64 + i * 391;
             panel(x, 237, 370, 330, elegido == i ? Tema.AMARILLO : Tema.BORDE);
@@ -121,7 +127,6 @@ public class PantallaPreparacion extends PantallaBase {
             confirmarPersonaje();
             return;
         }
-        centrado("Hace clic en un personaje. ENTER para continuar. ESC para volver.", 640, 40, 1.2f, Tema.CREMA);
     }
 
     private boolean seleccionHaciaIzquierda() {
@@ -146,67 +151,57 @@ public class PantallaPreparacion extends PantallaBase {
 
     private String indicacionSeleccion() {
         if (enRed) {
-            if (opcionConexion == 0) {
-                return "Sos el jugador 1, a la izquierda.";
-            }
-            return "Sos el jugador 2, a la derecha.";
+            return red != null && red.getPuesto() == 2
+                ? "Sos el jugador 2, a la derecha." : "Sos el jugador 1, a la izquierda.";
         }
         if (jugadorQueElige == 1) {
-            return "Jugador 1 usa A/D. Despues elige el jugador 2.";
+            return "Jugador 1";
         }
-        return "Jugador 2 usa las flechas.";
+        return "Jugador 2";
     }
 
     private void dibujarConexion(float delta) {
-        if (tecla(Input.Keys.UP, Input.Keys.DOWN, Input.Keys.W, Input.Keys.S)) {
-            opcionConexion = 1 - opcionConexion;
-            error = "";
-        }
+        fondo(delta);
         if (tecla(Input.Keys.ENTER)) {
             confirmarConexion();
             if (!configurandoConexion) {
                 return;
             }
         }
-        fondo(delta, "JUGAR EN RED");
-        if (boton("CREAR UNA PARTIDA", 270, 452, 740, 75, opcionConexion == 0)) {
-            opcionConexion = 0;
-            error = "";
-        }
-        if (boton("UNIRME A UNA PARTIDA", 270, 352, 740, 75, opcionConexion == 1)) {
-            opcionConexion = 1;
-            error = "";
-        }
-        if (opcionConexion == 0) {
-            centrado("PARTIDA LISTA", 640, 309, 1.8f, Tema.AMARILLO);
-            centrado("Compartí la dirección de esta partida con tu rival.", 640, 272, 1.15f, Tema.CREMA);
-            centrado("Esperando rival...", 640, 229, 1.1f, Tema.GRIS);
-        } else {
-            centrado("ESCRIBI LA DIRECCION DE TU RIVAL:", 640, 314, 1.35f, Tema.CREMA);
-            panel(300, 238, 680, 51, Tema.AMARILLO);
-            String visible = ip.length() > 52 ? "..." + ip.substring(ip.length() - 52) : ip;
-            float escalaDireccion = visible.length() > 40 ? 0.95f : 1.25f;
-            centrado(visible.isEmpty() ? "IP o dominio" : visible + ((int) (reloj * 2) % 2 == 0 ? "_" : ""),
-                640, 256, escalaDireccion, ip.isEmpty() ? Tema.GRIS : Tema.CREMA);
-        }
-        centrado(error.isEmpty() ? "" : error, 640, 174, 1.05f, Tema.ROJO);
-        if (boton("CONTINUAR", 440, 91, 400, 70, true)) {
+        panel(300, 296, 680, 55, Tema.AMARILLO);
+        String visible = ip.length() > 52 ? "..." + ip.substring(ip.length() - 52) : ip;
+        float escalaDireccion = visible.length() > 40 ? 0.95f : 1.25f;
+        centrado(visible.isEmpty() ? "IP del servidor" : visible + ((int) (reloj * 2) % 2 == 0 ? "_" : ""),
+            640, 314, escalaDireccion, ip.isEmpty() ? Tema.GRIS : Tema.CREMA);
+        centrado(error.isEmpty() ? "" : error, 640, 174, 1.05f, Tema.AMARILLO);
+        boolean rivalConectado = red != null && red.getEstado().startsWith("Rival conectado");
+        String textoBoton = red != null && red.getPuesto() > 0
+            ? rivalConectado ? "CONTINUAR" : "ESPERANDO RIVAL" : "CONECTAR";
+        boolean habilitado = red == null || rivalConectado || red.haTerminado();
+        if (boton(textoBoton, 440, 91, 400, 70, habilitado)) {
             confirmarConexion();
             return;
         }
-        centrado("Hace clic para elegir. ENTER para continuar. ESC para volver.", 640, 40, 1.2f, Tema.CREMA);
     }
 
     private void confirmarConexion() {
-        if (opcionConexion == 1) {
-            String destino = ip.trim();
-            if (!esDestinoValido(destino)) {
-                error = "La dirección no es válida.";
-                return;
+        if (red != null && red.getPuesto() > 0) {
+            if (red.getEstado().startsWith("Rival conectado")) {
+                configurandoConexion = false;
             }
-            ip = destino;
+            return;
         }
-        configurandoConexion = false;
+        if (red != null && !red.haTerminado()) {
+            return;
+        }
+        if (red != null && red.haTerminado()) {
+            red = null;
+        }
+        String destino = ip.trim();
+
+        ip = destino;
+        error = "";
+        red = new SesionRed(ip);
     }
 
     private boolean esDestinoValido(String destino) {
@@ -232,8 +227,14 @@ public class PantallaPreparacion extends PantallaBase {
             jugadorQueElige = 2;
             return;
         }
+        if (enRed) {
+            TipoPersonaje seleccionado = TipoPersonaje.values()[indicePersonaje1];
+            red.enviarSeleccion(seleccionado, true);
+            juego.setScreen(new PantallaInstrucciones(juego, seleccionado, red));
+            return;
+        }
         juego.setScreen(new PantallaInstrucciones(juego, TipoPersonaje.values()[indicePersonaje1],
-            TipoPersonaje.values()[indicePersonaje2], enRed, opcionConexion == 0, ip));
+            TipoPersonaje.values()[indicePersonaje2]));
     }
 
     @Override

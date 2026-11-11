@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.proyecto.juego.visual.Tema;
 
-/** Menú principal tras la portada. */
 public class PantallaInicio extends PantallaBase {
     private int opcion;
     private final String aviso;
@@ -31,8 +30,7 @@ public class PantallaInicio extends PantallaBase {
             elegir();
             return;
         }
-        fondo(delta, "");
-        centrado("MENU PRINCIPAL", 640, 615, 2.2f, Tema.CREMA);
+        fondo(delta);
         for (int i = 0; i < opciones.length; i++) {
             if (boton(opciones[i], 430, 380 - i * 92, 420, 60, opcion == i)) {
                 opcion = i;
@@ -41,9 +39,8 @@ public class PantallaInicio extends PantallaBase {
             }
         }
         if (!aviso.isEmpty()) {
-            centrado(aviso, 640, 99, 0.9f, Tema.ROJO);
+            centrado(aviso, 640, 99, 0.9f, Tema.AMARILLO);
         }
-        centrado("FLECHAS + ENTER / CLIC", 640, 32, 0.82f, Tema.GRIS);
     }
 
     private void elegir() {

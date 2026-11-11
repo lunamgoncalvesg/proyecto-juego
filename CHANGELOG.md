@@ -23,7 +23,7 @@
 
 - Presentación con una historia breve y sin texto: el equilibrado entrena, la rápida lo desafía y el fuerte reta a ambos.
 
-- Interfaz con botones más simples y colores amarillos y rojos.
+- Interfaz con botones más simples y colores amarillos y AMARILLOs.
 - El anfitrión controla J1 a la izquierda y el invitado J2 a la derecha.
 - En red, ambos esquemas de teclado controlan solo al personaje local; en modo local permanecen separados.
 - Daño, velocidad y recargas según el personaje: rápido 2/10 s, equilibrado 3/15 s y fuerte 4/20 s para bomba/especial.

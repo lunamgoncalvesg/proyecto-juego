@@ -5,18 +5,19 @@ import com.badlogic.gdx.InputAdapter;
 import java.util.Arrays;
 
 public class Controles extends InputAdapter {
-    public static final int IZQUIERDA = 1;
-    public static final int DERECHA = 2;
-    public static final int SALTAR = 4;
-    public static final int DEFENDER = 8;
-    public static final int BOMBA = 16;
-    public static final int GOLPE = 32;
-    public static final int ESPECIAL = 64;
-    public static final int TODAS_LAS_ACCIONES = 127;
+    public static final int IZQUIERDA = Acciones.IZQUIERDA;
+    public static final int DERECHA = Acciones.DERECHA;
+    public static final int SALTAR = Acciones.SALTAR;
+    public static final int DEFENDER = Acciones.DEFENDER;
+    public static final int BOMBA = Acciones.BOMBA;
+    public static final int GOLPE = Acciones.GOLPE;
+    public static final int ESPECIAL = Acciones.ESPECIAL;
+    public static final int TODAS_LAS_ACCIONES = Acciones.TODAS;
 
     private final boolean[] teclasPresionadas = new boolean[256];
     private final boolean enRed;
     private int accionesRemotas;
+    private int pulsaciones;
 
     public Controles() {
         this(false);
@@ -29,6 +30,9 @@ public class Controles extends InputAdapter {
     @Override
     public boolean keyDown(int tecla) {
         if (tecla >= 0 && tecla < teclasPresionadas.length) {
+            if (!teclasPresionadas[tecla]) {
+                pulsaciones |= accionDeTecla(tecla);
+            }
             teclasPresionadas[tecla] = true;
         }
         return true;
@@ -96,9 +100,27 @@ public class Controles extends InputAdapter {
         accionesRemotas = mascara & TODAS_LAS_ACCIONES;
     }
 
+    public int consumirPulsaciones() {
+        int resultado = pulsaciones;
+        pulsaciones = 0;
+        return resultado;
+    }
+
+    private int accionDeTecla(int tecla) {
+        if (tecla == Input.Keys.A || tecla == Input.Keys.LEFT) return IZQUIERDA;
+        if (tecla == Input.Keys.D || tecla == Input.Keys.RIGHT) return DERECHA;
+        if (tecla == Input.Keys.W || tecla == Input.Keys.UP) return SALTAR;
+        if (tecla == Input.Keys.S || tecla == Input.Keys.DOWN) return DEFENDER;
+        if (tecla == Input.Keys.SPACE || tecla == Input.Keys.M) return BOMBA;
+        if (tecla == Input.Keys.E || tecla == Input.Keys.L) return GOLPE;
+        if (tecla == Input.Keys.R || tecla == Input.Keys.P) return ESPECIAL;
+        return 0;
+    }
+
     public void limpiar() {
         Arrays.fill(teclasPresionadas, false);
         accionesRemotas = 0;
+        pulsaciones = 0;
     }
 
     private boolean accionPresionada(int acciones, int accion) {

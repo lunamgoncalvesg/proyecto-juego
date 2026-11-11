@@ -11,7 +11,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-/** Tipografía de bloques 5x7 para menús y HUD de estilo arcade. */
 public final class FuenteRetro implements Disposable {
     private static final int ANCHO_CELDA = 6;
     private static final int ANCHO_GLYPH = 5;

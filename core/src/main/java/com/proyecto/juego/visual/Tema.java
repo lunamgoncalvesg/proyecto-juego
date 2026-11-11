@@ -12,7 +12,6 @@ public final class Tema {
     public static final Color GRIS = Color.valueOf("978cae");
     public static final Color AMARILLO = Color.valueOf("ffc02e");
     public static final Color ESTAMINA = Color.valueOf("38dddc");
-    public static final Color ROJO = Color.valueOf("ee4a8a");
     private Tema() {
     }
 }

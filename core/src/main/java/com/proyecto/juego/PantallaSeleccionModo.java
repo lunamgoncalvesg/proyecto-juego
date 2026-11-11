@@ -27,7 +27,7 @@ public class PantallaSeleccionModo extends PantallaBase {
             elegir();
             return;
         }
-        fondo(delta, "DONDE VAN A JUGAR?");
+        fondo(delta);
         for (int i = 0; i < 3; i++) {
             if (boton(titulos[i], 300, 420 - i * 120, 680, 85, opcion == i)) {
                 opcion = i;
@@ -35,7 +35,6 @@ public class PantallaSeleccionModo extends PantallaBase {
                 return;
             }
         }
-        centrado("Hace clic o usa las flechas. ENTER para continuar. ESC para volver.", 640, 40, 1.2f, Tema.CREMA);
     }
 
     private void elegir() {

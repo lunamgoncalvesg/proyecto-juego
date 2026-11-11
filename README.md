@@ -40,20 +40,34 @@ Al salir, incluso al cerrar la ventana, aparecen los créditos con música y el 
 | Bomba | ESPACIO | M |
 | Especial | R | P |
 
-En una misma computadora, cada jugador usa su columna. En red, cada persona puede usar cualquiera de las dos columnas o combinarlas: todas sus teclas controlan únicamente a su personaje. El anfitrión es J1, a la izquierda, y el invitado J2, a la derecha.
+En una misma computadora, cada jugador usa su columna. En red, cada persona puede usar cualquiera de las dos columnas o combinarlas: todas sus teclas controlan únicamente a su personaje. El servidor asigna J1 y J2 por orden de conexión.
 
 ## Jugar por Internet o en una red local
 
-La conexión es directa entre las dos computadoras (TCP, puerto 54555). No requiere que estén en la misma red, pero el anfitrión debe poder recibir conexiones desde Internet:
+El servidor es una aplicación Java independiente. Escucha conexiones TCP en el puerto fijo **54555**; ambos jugadores escriben la misma IP en el juego. No se usa UDP.
 
-1. Copiar el mismo JAR a ambas computadoras e instalar Java 17 o superior.
-2. En el router del anfitrión, reenviar el puerto **TCP 54555** a la IPv4 local de la computadora donde corre el juego. No hace falta abrir UDP.
-3. Permitir Java en el firewall del anfitrión y dejar el juego en la pantalla de espera.
-4. El anfitrión comparte su IPv4 pública o un nombre DDNS. La IP local que muestra el juego sirve solo para conexiones en la misma red.
-5. La otra persona entra en **JUGAR → EN DOS COMPUTADORAS → UNIRME A UNA PARTIDA** e ingresa esa IPv4 pública o dominio, sin `http://` ni `:54555`.
-6. Ambos eligen su personaje y presionan **JUGAR**. El anfitrión debe iniciar primero y permanecer esperando.
+### Iniciar el servidor en Windows
 
-Si el proveedor de Internet usa CGNAT o bloquea conexiones entrantes, el reenvío del router no alcanza: hace falta pedir una IPv4 pública al proveedor o usar una VPN de juegos que permita conexiones directas. Para dos instancias en la misma computadora, usar `127.0.0.1`; para una red local, usar la IPv4 local del anfitrión. Si alguien abandona o se corta la conexión, el otro vuelve al menú con un aviso. El proyecto no incluye salas públicas, emparejamiento ni un servidor alojado: el anfitrión comparte la dirección y recibe la conexión.
+1. Instala Java 17 o superior en la computadora que alojará el servidor.
+2. Ejecuta `iniciar-servidor.bat` y deja abierta la consola. La primera ejecución prepara la distribución; se necesita conexión a Internet para descargar Gradle o dependencias que todavía no estén en caché.
+3. Espera el mensaje `SERVIDOR INICIADO` y permite Java en el Firewall de Windows para redes privadas y públicas, según dónde jugarán.
+4. En cada juego, entra a **JUGAR → EN UN SERVIDOR ONLINE**, escribe la IP del servidor y pulsa **CONECTAR**. El puerto no se escribe.
+
+### Conexiones de prueba y red local
+
+- Dos instancias en la misma computadora que ejecuta el servidor: `127.0.0.1`.
+- Otra computadora de la misma red: la IPv4 local de la computadora servidor, por ejemplo `192.168.1.50`.
+- Para que la IP local no cambie, crea una **reserva DHCP** en el router para la computadora servidor, asociando su dirección MAC con la IP local que usarás en la regla de puertos.
+
+### Conexión desde otra casa
+
+1. En el router, crea una regla de reenvío para **TCP 54555** hacia la IP local reservada de la computadora servidor. No abras UDP.
+2. Consulta la IPv4 pública del router desde la computadora servidor y comparte esa dirección con los jugadores remotos. No compartas la IP local del servidor.
+3. Los jugadores remotos escriben la IPv4 pública en el juego. Si usas DDNS, pueden ingresar el dominio.
+
+Antes de diagnosticar el reenvío, compara la dirección WAN que muestra el router con la IPv4 pública que ve un sitio de consulta de IP. Si no coinciden, o si la WAN está dentro de `100.64.0.0/10`, el proveedor probablemente usa CGNAT. En ese caso, pide al proveedor una IPv4 pública enrutable; una regla de puertos local no puede atravesar CGNAT. También confirma que la regla apunte a la IP local reservada, que el firewall permita Java y que el servidor siga mostrando que escucha en 54555. La prueba desde Internet debe hacerse desde una conexión externa, por ejemplo datos móviles, porque algunos routers no permiten probar su propia IP pública desde la LAN.
+
+Si alguien se desconecta, el servidor libera los dos puestos para que se conecte otra pareja. No hay salas, cuentas ni múltiples partidas simultáneas.
 
 ## Personajes y ataques
 
@@ -95,6 +109,8 @@ Para cambiar recursos sin recompilar, colocar una carpeta `assets` junto al JAR 
 ```powershell
 ./gradlew.bat :lwjgl3:run
 ./gradlew.bat :core:compileJava :lwjgl3:jar
+  ./gradlew.bat :server:run
+  ./gradlew.bat :server:installDist
 ```
 
 El código está en `core/src/main/java/com/proyecto/juego`. El lanzador de escritorio está en `lwjgl3/src/main/java`. El JAR se genera en `lwjgl3/build/libs`.
@@ -119,6 +135,6 @@ LibGDX llama a `render(float delta)` para actualizar lo que aparece en pantalla.
 
 Las pantallas del menú, selección, instrucciones, resultado y créditos tienen sus propias clases. `PantallaBase` reúne las herramientas que comparten, como dibujar texto, paneles y botones.
 
-La conexión está en `red/SesionRed.java`: abre el socket y envía o recibe mensajes en segundo plano. El anfitrión calcula el combate y el invitado recibe su estado. En `Controles`, cada acción tiene un número distinto para poder combinar varias teclas en un único mensaje; esos números tienen nombres como `SALTAR`, `DEFENDER` y `BOMBA`.
+La conexión cliente está en `red/SesionRed.java`; `server` acepta hasta dos jugadores y `Partida` ejecuta el combate a 60 ticks por segundo. El servidor calcula el resultado verdadero y envía estados por TCP. En `Controles`, cada acción tiene una máscara para combinar teclas en un mensaje; los eventos de pulsación se conservan para que los ataques breves no se pierdan.
 
 Las clases de `visual` cargan imágenes, reproducen el fondo y definen colores. La lectura interna de GIF y los hilos de red son las partes más técnicas; se pueden estudiar después de entender el combate local.

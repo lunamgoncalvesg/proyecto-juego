@@ -34,7 +34,7 @@ public abstract class PantallaBase extends ScreenAdapter {
         Gdx.input.setInputProcessor(null);
     }
 
-    protected void fondo(float delta, String titulo) {
+    protected void fondo(float delta) {
         reloj += delta;
         actualizarFocoVisual();
         Gdx.gl.glClearColor(Tema.FONDO.r, Tema.FONDO.g, Tema.FONDO.b, 1);
@@ -44,7 +44,6 @@ public abstract class PantallaBase extends ScreenAdapter {
         batch.setProjectionMatrix(camara.combined);
         formas.setProjectionMatrix(camara.combined);
         batch.begin();
-        batch.setColor(0.62f, 0.62f, 0.62f, 1);
         juego.fondo.dibujar(batch, 0, 0, 1280, 720);
         batch.setColor(Color.WHITE);
         batch.end();
@@ -55,7 +54,6 @@ public abstract class PantallaBase extends ScreenAdapter {
 
         formas.end();
 
-        centrado(titulo, 640, 662, 3.2f, Tema.CREMA);
 
     }
 

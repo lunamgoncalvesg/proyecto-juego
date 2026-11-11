@@ -35,11 +35,11 @@ public class PantallaResultado extends PantallaBase {
             titulo = "TENEMOS UN GANADOR";
             mensaje = "JUGADOR " + ganador + ": GANASTE!";
         }
-        fondo(delta, titulo);
-        panel(64, 140, 640, 390, victoria ? Tema.AMARILLO : Tema.ROJO);
+        fondo(delta);
+        panel(64, 140, 640, 390, victoria ? Tema.AMARILLO : Tema.AMARILLO);
         texto(mensaje, 96, 481, 2.2f, Tema.CREMA);
         if (jugadorLocal == 0) {
-            texto("JUGADOR " + (3 - ganador) + ": PERDISTE", 96, 424, 1.8f, Tema.ROJO);
+            texto("JUGADOR " + (3 - ganador) + ": PERDISTE", 96, 424, 1.8f, Tema.AMARILLO);
         }
         texto("MARCADOR FINAL", 96, 390, 1.2f, Tema.GRIS);
         texto(rondas1 + "  -  " + rondas2, 96, 321, 4, Tema.AMARILLO);
