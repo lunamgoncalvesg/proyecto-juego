@@ -38,6 +38,10 @@ public class PantallaSeleccionModo extends PantallaBase {
     }
 
     private void elegir() {
-        juego.setScreen(opcion == 2 ? new PantallaInicio(juego) : new PantallaPreparacion(juego, opcion == 1));
+        if (opcion == 0) {
+            juego.setScreen(new PantallaPreparacion(juego));
+        } else if (opcion == 2) {
+            juego.setScreen(new PantallaInicio(juego));
+        }
     }
 }

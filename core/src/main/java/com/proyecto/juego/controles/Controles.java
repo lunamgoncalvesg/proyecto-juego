@@ -12,27 +12,11 @@ public class Controles extends InputAdapter {
     public static final int BOMBA = Acciones.BOMBA;
     public static final int GOLPE = Acciones.GOLPE;
     public static final int ESPECIAL = Acciones.ESPECIAL;
-    public static final int TODAS_LAS_ACCIONES = Acciones.TODAS;
-
     private final boolean[] teclasPresionadas = new boolean[256];
-    private final boolean enRed;
-    private int accionesRemotas;
-    private int pulsaciones;
-
-    public Controles() {
-        this(false);
-    }
-
-    public Controles(boolean enRed) {
-        this.enRed = enRed;
-    }
 
     @Override
     public boolean keyDown(int tecla) {
         if (tecla >= 0 && tecla < teclasPresionadas.length) {
-            if (!teclasPresionadas[tecla]) {
-                pulsaciones |= accionDeTecla(tecla);
-            }
             teclasPresionadas[tecla] = true;
         }
         return true;
@@ -83,44 +67,15 @@ public class Controles extends InputAdapter {
     }
 
     public int mascaraJugador1() {
-        if (enRed) {
-            return esquema1() | esquema2();
-        }
         return esquema1();
     }
 
     public int mascaraJugador2() {
-        if (enRed) {
-            return accionesRemotas;
-        }
         return esquema2();
-    }
-
-    public void aplicarJugador2(int mascara) {
-        accionesRemotas = mascara & TODAS_LAS_ACCIONES;
-    }
-
-    public int consumirPulsaciones() {
-        int resultado = pulsaciones;
-        pulsaciones = 0;
-        return resultado;
-    }
-
-    private int accionDeTecla(int tecla) {
-        if (tecla == Input.Keys.A || tecla == Input.Keys.LEFT) return IZQUIERDA;
-        if (tecla == Input.Keys.D || tecla == Input.Keys.RIGHT) return DERECHA;
-        if (tecla == Input.Keys.W || tecla == Input.Keys.UP) return SALTAR;
-        if (tecla == Input.Keys.S || tecla == Input.Keys.DOWN) return DEFENDER;
-        if (tecla == Input.Keys.SPACE || tecla == Input.Keys.M) return BOMBA;
-        if (tecla == Input.Keys.E || tecla == Input.Keys.L) return GOLPE;
-        if (tecla == Input.Keys.R || tecla == Input.Keys.P) return ESPECIAL;
-        return 0;
     }
 
     public void limpiar() {
         Arrays.fill(teclasPresionadas, false);
-        accionesRemotas = 0;
-        pulsaciones = 0;
     }
 
     private boolean accionPresionada(int acciones, int accion) {

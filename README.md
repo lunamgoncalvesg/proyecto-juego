@@ -3,7 +3,6 @@
 Juego de pelea 2D para dos personas, desarrollado con Java y LibGDX.
 
 - Colegio: Ing. E. Latzina.
-- Materia: Programación sobre Redes.
 - Profesor: Morales Diego.
 - Curso: 6°2, T.M, C.
 
@@ -20,10 +19,10 @@ Juego de pelea 2D para dos personas, desarrollado con Java y LibGDX.
 Requiere Java 17 o superior. Abrir el JAR o ejecutar:
 
 ```powershell
-java -jar lwjgl3/build/libs/Proyecto-Juego-1.0.0.jar
+java -jar lwjgl3/build/libs/Proyecto-Juego-1.0.1.jar
 ```
 
-Al abrir, se muestra la portada arcade de `assets/ui/portada.png`; ENTER o cualquier clic inicia la presentación del gato que llega al templo, se enfrenta con la tortuga y aprende a entrenar junto a ella. Al terminar, aparece el menú. JUGAR abre la selección de modo; también se puede abrir el GitHub o salir. La presentación se puede omitir con ENTER, ESPACIO o ESC.
+Al abrir, se muestra la portada de `assets/ui/portada.png`; ENTER o cualquier clic inicia la presentación del gato que llega al templo, se enfrenta con la tortuga y aprende a entrenar junto a ella. Al terminar, aparece el menú. JUGAR abre la selección de modo; también se puede abrir el GitHub o salir. La presentación se puede omitir con ENTER, ESPACIO o ESC.
 
 Elegir el modo, seleccionar personajes, revisar los controles y presionar JUGAR. Gana quien consigue dos rondas. Cada ronda dura hasta 60 segundos; los empates se repiten. Al terminar se muestra el resultado y se vuelve al menú. ESC durante el combate abandona la partida.
 
@@ -40,34 +39,7 @@ Al salir, incluso al cerrar la ventana, aparecen los créditos con música y el 
 | Bomba | ESPACIO | M |
 | Especial | R | P |
 
-En una misma computadora, cada jugador usa su columna. En red, cada persona puede usar cualquiera de las dos columnas o combinarlas: todas sus teclas controlan únicamente a su personaje. El servidor asigna J1 y J2 por orden de conexión.
-
-## Jugar por Internet o en una red local
-
-El servidor es una aplicación Java independiente. Escucha conexiones TCP en el puerto fijo **54555**; ambos jugadores escriben la misma IP en el juego. No se usa UDP.
-
-### Iniciar el servidor en Windows
-
-1. Instala Java 17 o superior en la computadora que alojará el servidor.
-2. Ejecuta `iniciar-servidor.bat` y deja abierta la consola. La primera ejecución prepara la distribución; se necesita conexión a Internet para descargar Gradle o dependencias que todavía no estén en caché.
-3. Espera el mensaje `SERVIDOR INICIADO` y permite Java en el Firewall de Windows para redes privadas y públicas, según dónde jugarán.
-4. En cada juego, entra a **JUGAR → EN UN SERVIDOR ONLINE**, escribe la IP del servidor y pulsa **CONECTAR**. El puerto no se escribe.
-
-### Conexiones de prueba y red local
-
-- Dos instancias en la misma computadora que ejecuta el servidor: `127.0.0.1`.
-- Otra computadora de la misma red: la IPv4 local de la computadora servidor, por ejemplo `192.168.1.50`.
-- Para que la IP local no cambie, crea una **reserva DHCP** en el router para la computadora servidor, asociando su dirección MAC con la IP local que usarás en la regla de puertos.
-
-### Conexión desde otra casa
-
-1. En el router, crea una regla de reenvío para **TCP 54555** hacia la IP local reservada de la computadora servidor. No abras UDP.
-2. Consulta la IPv4 pública del router desde la computadora servidor y comparte esa dirección con los jugadores remotos. No compartas la IP local del servidor.
-3. Los jugadores remotos escriben la IPv4 pública en el juego. Si usas DDNS, pueden ingresar el dominio.
-
-Antes de diagnosticar el reenvío, compara la dirección WAN que muestra el router con la IPv4 pública que ve un sitio de consulta de IP. Si no coinciden, o si la WAN está dentro de `100.64.0.0/10`, el proveedor probablemente usa CGNAT. En ese caso, pide al proveedor una IPv4 pública enrutable; una regla de puertos local no puede atravesar CGNAT. También confirma que la regla apunte a la IP local reservada, que el firewall permita Java y que el servidor siga mostrando que escucha en 54555. La prueba desde Internet debe hacerse desde una conexión externa, por ejemplo datos móviles, porque algunos routers no permiten probar su propia IP pública desde la LAN.
-
-Si alguien se desconecta, el servidor libera los dos puestos para que se conecte otra pareja. No hay salas, cuentas ni múltiples partidas simultáneas.
+En el menú de modo, «EN ESTA COMPUTADORA» inicia una partida local para dos jugadores. La opción «EN DOS COMPUTADORAS» queda visible, pero no inicia ninguna acción.
 
 ## Personajes y ataques
 
@@ -83,7 +55,7 @@ Las barras superiores muestran vida y estamina. Los círculos inferiores se rell
 
 ## Recursos
 
-Los personajes están en `assets/personajes/equilibrado` (guerrero felino), `assets/personajes/rapido` (tortuga luchadora) y `assets/personajes/fuerte` (hombre fuerte). Cada pose se guarda en su propio PNG para evitar que se mezclen celdas vecinas. Los archivos `arcade.png` se conservan como hojas de respaldo con este orden 3×3:
+Los personajes están en `assets/personajes/equilibrado` (gato), `assets/personajes/rapido` (tortuga) y `assets/personajes/fuerte` (hombre fuerte). Cada pose se guarda en su propio PNG para evitar que se mezclen celdas vecinas. Los archivos `arcade.png` se conservan como hojas de respaldo con este orden 3×3:
 
 | Fila | Columna 1 | Columna 2 | Columna 3 |
 | --- | --- | --- | --- |
@@ -106,13 +78,6 @@ Para cambiar recursos sin recompilar, colocar una carpeta `assets` junto al JAR 
 
 ## Desarrollo
 
-```powershell
-./gradlew.bat :lwjgl3:run
-./gradlew.bat :core:compileJava :lwjgl3:jar
-  ./gradlew.bat :server:run
-  ./gradlew.bat :server:installDist
-```
-
 El código está en `core/src/main/java/com/proyecto/juego`. El lanzador de escritorio está en `lwjgl3/src/main/java`. El JAR se genera en `lwjgl3/build/libs`.
 
 [Repositorio](https://github.com/lunamgoncalvesg/proyecto-juego) · [Wiki](https://github.com/lunamgoncalvesg/proyecto-juego/wiki)
@@ -129,12 +94,10 @@ Una clase agrupa los datos y las acciones de una parte del juego. Un método es 
 | `controles/Controles.java` | Lee las teclas y determina qué acciones pide cada jugador. |
 | `combate/ControladorCombate.java` | Usa esas acciones para mover y atacar con los personajes. |
 | `Main.java` | Inicia el juego y cambia de pantalla. |
-| `PantallaCombate.java` | Coordina la partida, la dibuja y sincroniza la información en red. |
+| `PantallaCombate.java` | Coordina y dibuja la partida. |
 
 LibGDX llama a `render(float delta)` para actualizar lo que aparece en pantalla. `delta` indica cuántos segundos pasaron desde la actualización anterior: al multiplicar la velocidad por ese tiempo, el movimiento mantiene su ritmo aunque cambien los cuadros por segundo. Los métodos `actualizar...` calculan el estado del juego; los métodos `dibujar...` muestran ese estado.
 
 Las pantallas del menú, selección, instrucciones, resultado y créditos tienen sus propias clases. `PantallaBase` reúne las herramientas que comparten, como dibujar texto, paneles y botones.
 
-La conexión cliente está en `red/SesionRed.java`; `server` acepta hasta dos jugadores y `Partida` ejecuta el combate a 60 ticks por segundo. El servidor calcula el resultado verdadero y envía estados por TCP. En `Controles`, cada acción tiene una máscara para combinar teclas en un mensaje; los eventos de pulsación se conservan para que los ataques breves no se pierdan.
-
-Las clases de `visual` cargan imágenes, reproducen el fondo y definen colores. La lectura interna de GIF y los hilos de red son las partes más técnicas; se pueden estudiar después de entender el combate local.
+Las clases de `visual` cargan imágenes, reproducen el fondo y definen colores. La lectura interna de GIF es una de las partes más técnicas; se puede estudiar después de entender el combate local.

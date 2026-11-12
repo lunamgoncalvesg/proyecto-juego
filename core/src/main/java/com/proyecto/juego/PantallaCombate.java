@@ -9,24 +9,16 @@ import com.proyecto.juego.controles.Controles;
 import com.proyecto.juego.personajes.EstadoPersonaje;
 import com.proyecto.juego.personajes.Personaje;
 import com.proyecto.juego.personajes.TipoPersonaje;
-import com.proyecto.juego.red.SesionRed;
 import com.proyecto.juego.visual.Apariencia;
 import com.proyecto.juego.visual.Tema;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 
 public class PantallaCombate extends PantallaBase {
     private TipoPersonaje tipo1, tipo2;
-    private final SesionRed red;
     private final Controles controles;
     private Combate combate;
     private ControladorCombate controlador;
     private Apariencia apariencia1, apariencia2;
     private Personaje jugador1, jugador2;
-    private boolean rivalListo;
     private boolean resultadoRonda;
     private boolean finalizado;
     private int ganadorRonda;
@@ -34,26 +26,12 @@ public class PantallaCombate extends PantallaBase {
     private final int[] poses = new int[2];
     private final float[] tiemposPose = new float[2];
     private final boolean[] caminando = new boolean[2];
-    private final float[] visualDesdeX = new float[2], visualDesdeY = new float[2];
-    private final float[] visualHastaX = new float[2], visualHastaY = new float[2];
-    private float progresoVisual = 1;
-    private byte[] ultimoEstado;
-    private int mascaraAnterior;
-    private float tiempoDesdeElEnvio;
-    private int pulsacionesPendientes;
 
-    public PantallaCombate(Main juego, TipoPersonaje tipo1, TipoPersonaje tipo2, SesionRed red) {
+    public PantallaCombate(Main juego, TipoPersonaje tipo1, TipoPersonaje tipo2) {
         super(juego);
-        this.red = red;
-        if (red != null && red.getPuesto() == 2) {
-            this.tipo1 = TipoPersonaje.EQUILIBRADO;
-            this.tipo2 = tipo1;
-        } else {
-            this.tipo1 = tipo1;
-            this.tipo2 = tipo2;
-        }
-        controles = new Controles(red != null);
-        rivalListo = red == null;
+        this.tipo1 = tipo1;
+        this.tipo2 = tipo2;
+        controles = new Controles();
         crearCombate();
     }
 
@@ -81,11 +59,6 @@ public class PantallaCombate extends PantallaBase {
         poses[0] = poses[1] = 0;
         tiemposPose[0] = tiemposPose[1] = 0;
         caminando[0] = caminando[1] = false;
-        visualDesdeX[0] = visualHastaX[0] = jugador1.getX();
-        visualDesdeX[1] = visualHastaX[1] = jugador2.getX();
-        visualDesdeY[0] = visualHastaY[0] = jugador1.getY();
-        visualDesdeY[1] = visualHastaY[1] = jugador2.getY();
-        progresoVisual = 1;
     }
 
     @Override
@@ -100,18 +73,7 @@ public class PantallaCombate extends PantallaBase {
             juego.setScreen(new PantallaInicio(juego));
             return;
         }
-        if (red != null) {
-            actualizarRed(delta);
-        }
-        if (red != null && red.haTerminado() && !finalizado) {
-            juego.setScreen(new PantallaInicio(juego, red.getEstado()));
-            return;
-        }
-        if (red == null) {
-            if (rivalListo) actualizarCombate(delta);
-        } else {
-            recibirEstadoServidor();
-        }
+        actualizarCombate(delta);
         if (finalizado) {
             tiempoDesdeElFinal += delta;
             if (tiempoDesdeElFinal >= 2.5f) {
@@ -119,15 +81,13 @@ public class PantallaCombate extends PantallaBase {
                 return;
             }
         }
-        actualizarInterpolacion(delta);
         dibujarCombate(delta);
     }
 
     private void mostrarResultado() {
         int ganador = combate.getRondasJugador1() >= 2 ? 1 : 2;
-        int jugadorLocal = red == null ? 0 : red.getPuesto();
         TipoPersonaje personajeResultado = ganador == 1 ? tipo1 : tipo2;
-        juego.setScreen(new PantallaResultado(juego, ganador, jugadorLocal, personajeResultado,
+        juego.setScreen(new PantallaResultado(juego, ganador, 0, personajeResultado,
             combate.getRondasJugador1(), combate.getRondasJugador2()));
     }
 
@@ -180,115 +140,6 @@ public class PantallaCombate extends PantallaBase {
         }
     }
 
-    private void actualizarRed(float delta) {
-        if (!red.conectado()) return;
-        tiempoDesdeElEnvio += delta;
-        int mascara = controles.mascaraJugador1();
-        pulsacionesPendientes |= controles.consumirPulsaciones();
-        if (tiempoDesdeElEnvio >= 1f / 60f || mascara != mascaraAnterior || pulsacionesPendientes != 0) {
-            red.enviarControles(mascara, pulsacionesPendientes);
-            tiempoDesdeElEnvio = 0;
-            pulsacionesPendientes = 0;
-        }
-        mascaraAnterior = mascara;
-    }
-
-    private void recibirEstadoServidor() {
-        byte[] estado = red.ultimoEstado();
-        if (estado == null || estado == ultimoEstado) {
-            return;
-        }
-        boolean habiaEstado = ultimoEstado != null;
-        float[] posicionAnteriorX = {posicionVisualX(0), posicionVisualX(1)};
-        float[] posicionAnteriorY = {posicionVisualY(0), posicionVisualY(1)};
-        ultimoEstado = estado;
-        try (DataInputStream datos = new DataInputStream(new ByteArrayInputStream(estado))) {
-            int ordinalPrimero = datos.readUnsignedByte();
-            int ordinalSegundo = datos.readUnsignedByte();
-            if (ordinalPrimero >= TipoPersonaje.values().length || ordinalSegundo >= TipoPersonaje.values().length) {
-                throw new IOException("Personaje desconocido en el estado");
-            }
-            TipoPersonaje primero = TipoPersonaje.values()[ordinalPrimero];
-            TipoPersonaje segundo = TipoPersonaje.values()[ordinalSegundo];
-            int fase = datos.readUnsignedByte();
-            float tiempoFase = datos.readFloat();
-            int ganador = datos.readInt();
-            int[] posesRecibidas = {datos.readUnsignedByte(), datos.readUnsignedByte()};
-            float[] tiemposRecibidos = {datos.readFloat(), datos.readFloat()};
-            boolean[] caminandoRecibido = {datos.readBoolean(), datos.readBoolean()};
-            if (fase > 3 || !Float.isFinite(tiempoFase) || tiempoFase < 0 || tiempoFase > 60 ||
-                ganador < 0 || ganador > 2 || posesRecibidas[0] > 3 || posesRecibidas[1] > 3 ||
-                !Float.isFinite(tiemposRecibidos[0]) || !Float.isFinite(tiemposRecibidos[1]) ||
-                tiemposRecibidos[0] < 0 || tiemposRecibidos[0] > 0.5f ||
-                tiemposRecibidos[1] < 0 || tiemposRecibidos[1] > 0.5f) {
-                throw new IOException("Estado de combate fuera de rango");
-            }
-            if (primero != tipo1 || segundo != tipo2) {
-                tipo1 = primero;
-                tipo2 = segundo;
-                crearCombate();
-            }
-            combate.leer(datos);
-            if (datos.available() != 0) throw new IOException("Datos sobrantes en estado de combate");
-            validarPersonaje(jugador1);
-            validarPersonaje(jugador2);
-            if (!Float.isFinite(combate.getTiempoRonda()) || combate.getTiempoRonda() < 0 || combate.getTiempoRonda() > 60 ||
-                combate.getRondasJugador1() < 0 || combate.getRondasJugador1() > 2 ||
-                combate.getRondasJugador2() < 0 || combate.getRondasJugador2() > 2 ||
-                !Float.isFinite(combate.getRecargaBombaJugador1()) || combate.getRecargaBombaJugador1() < 0 || combate.getRecargaBombaJugador1() > 20 ||
-                !Float.isFinite(combate.getRecargaBombaJugador2()) || combate.getRecargaBombaJugador2() < 0 || combate.getRecargaBombaJugador2() > 20 ||
-                !Float.isFinite(combate.getRecargaEspecialJugador1()) || combate.getRecargaEspecialJugador1() < 0 || combate.getRecargaEspecialJugador1() > 20 ||
-                !Float.isFinite(combate.getRecargaEspecialJugador2()) || combate.getRecargaEspecialJugador2() < 0 || combate.getRecargaEspecialJugador2() > 20) {
-                throw new IOException("Valores de combate fuera de rango");
-            }
-            for (int i = 0; i < 2; i++) {
-                Personaje personaje = i == 0 ? jugador1 : jugador2;
-                visualDesdeX[i] = habiaEstado ? posicionAnteriorX[i] : personaje.getX();
-                visualDesdeY[i] = habiaEstado ? posicionAnteriorY[i] : personaje.getY();
-                visualHastaX[i] = personaje.getX();
-                visualHastaY[i] = personaje.getY();
-            }
-            progresoVisual = habiaEstado ? 0 : 1;
-            rivalListo = true;
-            cuentaRegresiva = fase == 0 ? tiempoFase : 0;
-            resultadoRonda = fase == 2;
-            finalizado = fase == 3;
-            ganadorRonda = ganador;
-            poses[0] = posesRecibidas[0];
-            poses[1] = posesRecibidas[1];
-            tiemposPose[0] = tiemposRecibidos[0];
-            tiemposPose[1] = tiemposRecibidos[1];
-            caminando[0] = caminandoRecibido[0];
-            caminando[1] = caminandoRecibido[1];
-        } catch (IOException e) {
-            Gdx.app.error("Red", "Estado de combate invalido", e);
-            red.close();
-        }
-    }
-
-    private void validarPersonaje(Personaje personaje) throws IOException {
-        if (!Float.isFinite(personaje.getX()) || personaje.getX() < 0 || personaje.getX() > 1200 ||
-            !Float.isFinite(personaje.getY()) || personaje.getY() < 80 || personaje.getY() > 400 ||
-            !Float.isFinite(personaje.getVida()) || personaje.getVida() < 0 || personaje.getVida() > 100 ||
-            !Float.isFinite(personaje.getEstamina()) || personaje.getEstamina() < 0 || personaje.getEstamina() > 100) {
-            throw new IOException("Valores de personaje fuera de rango");
-        }
-    }
-
-    private void actualizarInterpolacion(float delta) {
-        if (red != null && progresoVisual < 1) {
-            progresoVisual = Math.min(1, progresoVisual + delta * 30f);
-        }
-    }
-
-    private float posicionVisualX(int indice) {
-        return visualDesdeX[indice] + (visualHastaX[indice] - visualDesdeX[indice]) * progresoVisual;
-    }
-
-    private float posicionVisualY(int indice) {
-        return visualDesdeY[indice] + (visualHastaY[indice] - visualDesdeY[indice]) * progresoVisual;
-    }
-
     private String elegirPose(Personaje personaje, int indice) {
         if (resultadoRonda || finalizado) {
             if (ganadorRonda == 0) {
@@ -334,10 +185,10 @@ public class PantallaCombate extends PantallaBase {
         formas.setColor(Tema.BORDE);
         formas.end();
         batch.begin();
-        float x1 = red == null ? jugador1.getX() : posicionVisualX(0);
-        float x2 = red == null ? jugador2.getX() : posicionVisualX(1);
-        float y1 = red == null ? jugador1.getY() : posicionVisualY(0);
-        float y2 = red == null ? jugador2.getY() : posicionVisualY(1);
+        float x1 = jugador1.getX();
+        float x2 = jugador2.getX();
+        float y1 = jugador1.getY();
+        float y2 = jugador2.getY();
         float centro1 = resultadoRonda || finalizado ? 225 : x1 + 150;
         float centro2 = resultadoRonda || finalizado ? 1055 : x2 + 150;
         apariencia1.dibujar(batch, elegirPose(jugador1, 0), centro1, y1, 350, false);
@@ -356,11 +207,7 @@ public class PantallaCombate extends PantallaBase {
     }
 
     private void dibujarAvisos() {
-        if (!rivalListo) {
-            panel(240, 260, 800, 140, Tema.AMARILLO);
-            centrado("ESPERANDO AL RIVAL", 640, 360, 2.4f, Tema.CREMA);
-            centrado(red == null ? "" : red.getEstado(), 640, 310, 1.2f, Tema.GRIS);
-        } else if (cuentaRegresiva > 0 && !finalizado) {
+        if (cuentaRegresiva > 0 && !finalizado) {
             centrado("PREPARADOS", 640, 500, 1.5f, Tema.CREMA);
             centrado("" + (int) Math.ceil(cuentaRegresiva), 640, 418, 5, Tema.AMARILLO);
         } else if (resultadoRonda || finalizado) {
@@ -375,9 +222,7 @@ public class PantallaCombate extends PantallaBase {
         float[] maximos = {1, personaje.getAtaqueBomba().getTiempoRecarga(), personaje.getAtaqueEspecial().getTiempoRecarga()};
         String[] nombres = {"GOLPE", "BOMBA", "ESPECIAL"};
         String[] teclas;
-        if (red != null) {
-            teclas = new String[]{"E / L", "ESP / M", "R / P"};
-        } else if (segundo) {
+        if (segundo) {
             teclas = new String[]{"L", "M", "P"};
         } else {
             teclas = new String[]{"E", "ESP", "R"};
@@ -440,9 +285,6 @@ public class PantallaCombate extends PantallaBase {
 
     @Override
     public void dispose() {
-        if (red != null) {
-            red.close();
-        }
         apariencia1.dispose();
         apariencia2.dispose();
         super.dispose();

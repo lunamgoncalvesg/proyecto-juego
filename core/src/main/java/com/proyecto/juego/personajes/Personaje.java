@@ -3,10 +3,6 @@ package com.proyecto.juego.personajes;
 import com.proyecto.juego.combate.Ataque;
 import com.proyecto.juego.combate.TipoAtaque;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 public class Personaje {
 
     private String nombre;
@@ -234,23 +230,4 @@ public class Personaje {
         }
     }
 
-    public void escribir(DataOutputStream datos) throws IOException {
-        datos.writeFloat(x);
-        datos.writeFloat(y);
-        datos.writeFloat(vida);
-        datos.writeFloat(estamina);
-        datos.writeInt(estado.ordinal());
-    }
-
-    public void leer(DataInputStream datos) throws IOException {
-        x = datos.readFloat();
-        y = datos.readFloat();
-        vida = datos.readFloat();
-        estamina = datos.readFloat();
-        int ordinal = datos.readInt();
-        if (ordinal < 0 || ordinal >= EstadoPersonaje.values().length) {
-            throw new IOException("Estado de personaje invalido");
-        }
-        estado = EstadoPersonaje.values()[ordinal];
-    }
 }

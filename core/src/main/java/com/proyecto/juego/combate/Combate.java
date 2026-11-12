@@ -3,9 +3,6 @@ package com.proyecto.juego.combate;
 import com.proyecto.juego.personajes.EstadoPersonaje;
 import com.proyecto.juego.personajes.Personaje;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 
 public class Combate {
 
@@ -255,27 +252,4 @@ public class Combate {
         return distancia <= alcance + 0.01f && Math.abs(atacante.getY() - defensor.getY()) < 90;
     }
 
-    public void escribir(DataOutputStream datos) throws IOException {
-        jugador1.escribir(datos);
-        jugador2.escribir(datos);
-        datos.writeFloat(tiempoRonda);
-        datos.writeInt(rondasJugador1);
-        datos.writeInt(rondasJugador2);
-        datos.writeFloat(recargaBombaJugador1);
-        datos.writeFloat(recargaBombaJugador2);
-        datos.writeFloat(recargaEspecialJugador1);
-        datos.writeFloat(recargaEspecialJugador2);
-    }
-
-    public void leer(DataInputStream datos) throws IOException {
-        jugador1.leer(datos);
-        jugador2.leer(datos);
-        tiempoRonda = datos.readFloat();
-        rondasJugador1 = datos.readInt();
-        rondasJugador2 = datos.readInt();
-        recargaBombaJugador1 = datos.readFloat();
-        recargaBombaJugador2 = datos.readFloat();
-        recargaEspecialJugador1 = datos.readFloat();
-        recargaEspecialJugador2 = datos.readFloat();
-    }
 }
