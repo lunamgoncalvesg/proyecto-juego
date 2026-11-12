@@ -131,7 +131,7 @@ public class Personaje {
 
     public void saltar() {
         if (!enElAire) {
-            velocidadVertical = 300;
+            velocidadVertical = 500;
             enElAire = true;
             estado = EstadoPersonaje.SALTANDO;
         }
