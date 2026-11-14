@@ -67,9 +67,9 @@ El primer cliente conectado juega como jugador 1, a la izquierda; el segundo, co
 | Tortuga luchadora | 400 | ×0,8 | 2 s | 10 s |
 | Hombre fuerte | 220 | ×1,4 | 4 s | 20 s |
 
-El golpe suave consume 1 de estamina, la bomba 5 y el especial 10. Sus daños base son 5, 10 y 15. El bloqueo evita el daño. La estamina se recupera a razón de 1 por segundo sin atacar ni bloquear. La vida se reinicia al comenzar cada ronda.
+El golpe suave consume 6 de estamina, la bomba 18 y el especial 35. Sus daños base son 5, 10 y 15. El bloqueo evita el daño. Después de 1,25 segundos sin atacar ni bloquear, se recuperan 7 puntos de estamina por segundo. La vida y la estamina se restauran al comenzar cada ronda.
 
-Las barras superiores muestran vida y estamina. Los círculos inferiores se rellenan durante la recarga de los ataques y muestran las teclas correspondientes. Gana quien consigue dos rondas; cada ronda dura hasta 60 segundos y los empates se repiten.
+Las barras superiores muestran vida y estamina. Los círculos inferiores se rellenan durante la recarga de los ataques. Debajo aparecen la tecla y el costo de estamina. El relleno se atenúa cuando falta estamina. Gana quien consigue dos rondas. Cada ronda dura hasta 60 segundos y los empates se repiten.
 
 ## Recursos
 
@@ -81,7 +81,7 @@ Los personajes están en `assets/personajes/equilibrado` (gato), `assets/persona
 | 2 | Defender | Golpear | Patear |
 | 3 | Especial | Victoria | Derrota |
 
-Los sprites de la grilla deben mirar hacia la derecha; el juego invierte los del jugador 2 y ajusta el tamaño proporcionalmente. La hoja arcade.png es obligatoria. El golpe alterna preparación, impacto y regreso a guardia; mantener E o L repite el ciclo con recuperación.
+Los sprites de la grilla deben mirar hacia la derecha; el juego invierte los del jugador 2 y ajusta el tamaño proporcionalmente. La hoja arcade.png es obligatoria. El golpe alterna preparación, impacto y regreso a guardia. Para volver a golpear, soltá E o L y presioná la tecla otra vez.
 
 - `assets/fondo_dia.gif`: fondo de 07:00 a 18:59.
 - `assets/fondo_noche.gif`: fondo de 19:00 a 06:59.

@@ -1,7 +1,7 @@
 Cambios de animaciones
 =====================
 E (jugador 1) y L (jugador 2): cada golpe tiene preparacion, impacto y regreso a guardia.
-Mantener la tecla repite los golpes con un intervalo de recuperacion de 0,26 segundos.
+Para volver a golpear, hay que soltar la tecla y presionarla de nuevo tras la recuperacion de 0,26 segundos.
 No se agregaron dibujos nuevos: se animan las poses existentes de guardia y ataque.
 El controlador compartido aplica el cambio tanto en local como en el servidor de red.
 Cada personaje carga una sola textura arcade.png, con una grilla de 3 x 3:
@@ -10,5 +10,5 @@ block | punch | kick
 special | win | lose
 Las imagenes individuales anteriores estan en la carpeta de respaldo.
 Se recompilo Proyecto-Juego-1.0.1.jar. Usar esta version para jugar.
-Verificado: compilacion de cliente y servidor; repeticion, recuperacion y retorno a NORMAL en ambos jugadores.
+Verificado: compilacion de cliente y servidor, un golpe por pulsacion y retorno a NORMAL en ambos jugadores.
 Pendiente de comprobar visualmente jugando una partida.
