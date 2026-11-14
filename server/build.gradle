@@ -1,0 +1,19 @@
+plugins {
+  id 'application'
+}
+
+application {
+  mainClass = 'com.proyecto.juego.server.ServidorMain'
+}
+
+if (JavaVersion.current().isJava9Compatible()) {
+  compileJava.options.release.set(8)
+}
+
+dependencies {
+  implementation(project(':core')) {
+    exclude group: 'com.badlogicgames.gdx'
+    exclude group: 'com.badlogicgames.gdx-video'
+  }
+}
+
