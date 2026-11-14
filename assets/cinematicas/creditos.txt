@@ -6,6 +6,9 @@ Ing. E. Latzina
 # PROFESOR
 Morales Diego
 
+# MATERIA
+Programación sobre Redes
+
 # UN JUEGO DE
 Domínguez Victoria
 Galíndez Sofía
